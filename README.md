@@ -25,8 +25,8 @@ If everything goes fine you'll get something like this:
 
 Some features still to code:
 - Draw a better UI (if anyone willing to contribute please read the following section).
-- Collision between new vias and underlying objects: pads, modules, vias
-- Avoid placing vias near area edges
+- Collision between new vias and underlying objects: pads, modules, vias.
+- Avoid placing vias near area edges.
 - Any request?
 
 ## Coding notes
