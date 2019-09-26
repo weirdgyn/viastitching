@@ -14,8 +14,8 @@ The workflow is pretty simple: select the area you want to fill, click on ```Too
 
 ![AddNet dialog](pictures/viastitching_dialog.PNG?raw=true "ViaStitching dialog")
 
-The vias you're going to create needs to have an assigned net usually this's the net assigned to the surrouding area (the one you select  I guess) for this reason the plugin pre-select this net for you in the combobox but of course you're free to select another net if you like.
-The plugin dialog let you also specify the main parameters for the via creation (via size and drill size), the values you find in the textboxes are taken from the configuration of the board but you can change them. The other parameters to set here are the vertical and horizzontal spacing between each vias you can customize them also.
+The vias you're going to create needs to have an assigned net usually this's the net assigned to the surrouding area (the one you select I guess) for this reason the plugin pre-select this net for you in the combobox picking it up from the area itself; of course you're free to select another net if you like.
+The plugin dialog let you also specify the main parameters for the via creation (via size and drill size), the values you find in the textboxes here are taken from the configuration of the board but you can change them but beware of use values that will not conflict with DRC rules. The other parameters you can customize are vertical and horizzontal spacing between each vias.
 When you're satisfied with your settings you just need to press __Ok__ button and the fillup begin.
 If everything goes fine you'll get something like this:
 
