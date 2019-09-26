@@ -14,23 +14,24 @@ The workflow is pretty simple: select the area you want to fill, click on ```Too
 
 ![AddNet dialog](pictures/viastitching_dialog.PNG?raw=true "ViaStitching dialog")
 
-The vias you're going to create needs to have an assigned net usually this's the net assigned to the surrouding area (the one you select I guess) for this reason the plugin pre-select this net for you in the combobox picking it up from the area itself; of course you're free to select another net if you like.
-The plugin dialog let you also specify the main parameters for the via creation (via size and drill size), the values you find in the textboxes here are taken from the configuration of the board but you can change them but beware of use values that will not conflict with DRC rules. The other parameters you can customize are vertical and horizzontal spacing between each vias.
-When you're satisfied with your settings you just need to press __Ok__ button and the fillup begin.
+The vias you're going to create needs to be assigned a net usually this's the net of the selected area for this reason the plugin pre-select this net for you; of course you're free to select another net if you like.
+The plugin dialog let you also specify the parameters for the via creation (via size and drill size), the values you find in the textboxes here are taken from the configuration of the board, you can change them but beware to use values that will not conflict with DRC rules. The other parameters you can customize are vertical and horizzontal spacing between each vias.
+When you're satisfied with your settings you just need to press __Ok__ button and the fillup will begin.
 If everything goes fine you'll get something like this:
 
 ![viastitching result](pictures/viastitching_result.PNG?raw=true "ViaStitching result")
 
-After filling up you area is always a good practice to issue a DRC. 
+After stitching you area is always a good practice perform a DRC. 
 
 ## TODO
 
 Some features still to code:
-- Draw a better UI (if anyone willing to contribute please read the following section).
-- Collision between new vias and underlying objects: tracks, pads, modules, vias.
-- Avoid placing vias near area edges.
-- History management (board commit).
+- Match user units (mm/inches).
 - Add cleanup area function.
+- Draw a better UI (if anyone is willing to contribute please read the following section).
+- Collision between new vias and underlying objects: tracks, pads, modules, vias.
+- Avoid placing vias near area edges (define clearance).
+- History management (board commit).
 - Any request?
 
 ## Coding notes
