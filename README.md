@@ -21,12 +21,16 @@ If everything goes fine you'll get something like this:
 
 ![viastitching result](pictures/viastitching_result.PNG?raw=true "ViaStitching result")
 
+After filling up you area is always a good practice to issue a DRC. 
+
 ## TODO
 
 Some features still to code:
 - Draw a better UI (if anyone willing to contribute please read the following section).
-- Collision between new vias and underlying objects: pads, modules, vias.
+- Collision between new vias and underlying objects: tracks, pads, modules, vias.
 - Avoid placing vias near area edges.
+- History management.
+- Add cleanup area function.
 - Any request?
 
 ## Coding notes
