@@ -12,14 +12,14 @@ Whenever you need to fill a copper area with vias to improve thermal or current 
 
 The workflow is pretty simple: select the area you want to fill, click on ```Tools->External Plugins->ViaStitching``` or click on ![AddNet icon](viastitching.png?raw=true) toolbar icon: a dilaog like the one below should appear:
 
-![AddNet dialog](pictures/viastitiching_dialog.PNG?raw=true "ViaStitching dialog")
+![AddNet dialog](pictures/viastitching_dialog.PNG?raw=true "ViaStitching dialog")
 
 The vias you're going to create needs to have an assigned net usually this's the net assigned to the surrouding area (the one you select  I guess) for this reason the plugin pre-select this net for you in the combobox but of course you're free to select another net if you like.
 The plugin dialog let you also specify the main parameters for the via creation (via size and drill size), the values you find in the textboxes are taken from the configuration of the board but you can change them. The other parameters to set here are the vertical and horizzontal spacing between each vias you can customize them also.
 When you're satisfied with your settings you just need to press __Ok__ button and the fillup begin.
 If everything goes fine you'll get something like this:
 
-![Addnet result](pictures/viastitiching_result.PNG?raw=true "ViaStitching result")
+![viastitching result](pictures/viastitching_result.PNG?raw=true "ViaStitching result")
 
 ## Coding notes
 
