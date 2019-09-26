@@ -78,6 +78,8 @@ class ViaStitchingDialog(viastitching_gui):
         left = bbox.GetLeft()
         step_x = pcbnew.FromMM(float(self.m_txtHSpacing.GetValue()))
         step_y = pcbnew.FromMM(float(self.m_txtVSpacing.GetValue()))
+        netname = self.m_cbNet.GetStringSelection()
+        netcode = self.board.GetNetcodeFromNetname(netname)
         viacount = 0
         x = left
         while x <= right:
@@ -87,7 +89,7 @@ class ViaStitchingDialog(viastitching_gui):
                     via = pcbnew.VIA(self.board)
                     via.SetPosition(pcbnew.wxPoint(x,y))
                     via.SetLayer(self.area.GetLayer())
-                    via.SetNet(self.area.GetNet())
+                    via.SetNetCode(netcode)
                     self.board.Add(via)
                     viacount +=1
                 y += step_y
