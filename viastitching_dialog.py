@@ -51,20 +51,15 @@ class ViaStitchingDialog(viastitching_gui):
                 return True
         return False
 
-
     def PopulateNets(self):
-        modules = self.board.GetModules()
-        self.m_cbNet.Clear()
-        for mod in modules:
-            pads = mod.Pads()
-            for pad in pads:
-                netname = pad.GetNetname()
-                if netname != None and netname != "":
-                    if self.m_cbNet.FindString(netname) == wx.NOT_FOUND:
+        nets = self.board.GetNetsByName()
+        for netname, net in nets.items():
+            netname = net.GetNetname()
+            if netname != None and netname != "":
                         self.m_cbNet.Append(netname)
         if self.net != None:
             index = self.m_cbNet.FindString(self.net)
-            self.m_cbNet.Select(index)
+            self.m_cbNet.Select(index)                        
 
     def FillupArea(self):
         drillsize = pcbnew.FromMM(float(self.m_txtViaDrillSize.GetValue()))
