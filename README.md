@@ -6,7 +6,7 @@ Fill a selected copper area with a pattern of vias.
 
 ## When to use this tool
 
-Whenever you need to fill a copper area with vias to improve thermal or current conduction this tool is the answer (yet not the best one probably). The plugin is based on premade areas so you have to define one before invoking the plugin.
+Whenever you need to fill a copper area with vias to improve thermal or current conduction this tool is the answer (yet not the best one probably). The plugin is based on pre-existing areas so you have to define and select one before invoking the plugin.
 
 ## How it works
 
