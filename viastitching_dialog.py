@@ -68,7 +68,6 @@ class ViaStitchingDialog(viastitching_gui):
         netname = self.m_cbNet.GetStringSelection()
         netcode = self.board.GetNetcodeFromNetname(netname)
         viacount = 0
-        #TODO: check if via has the same net
         for item in self.board.GetTracks():
             if type(item) is pcbnew.VIA:
                 if self.area.HitTestInsideZone(item.GetPosition()) and item.GetDrillValue() == drillsize and item.GetWidth() == viasize and item.GetNetname() == netname:
