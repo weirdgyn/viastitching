@@ -54,6 +54,11 @@ class viastitching_gui ( wx.Dialog ):
 		self.m_txtViaDrillSize = wx.TextCtrl( self, wx.ID_ANY, u"0.4", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bHSizer2.Add( self.m_txtViaDrillSize, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
+		self.m_lblUnit1 = wx.StaticText( self, wx.ID_ANY, u"mm", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_lblUnit1.Wrap( -1 )
+
+		bHSizer2.Add( self.m_lblUnit1, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
 
 		bMainSizer.Add( bHSizer2, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
 
@@ -69,6 +74,11 @@ class viastitching_gui ( wx.Dialog ):
 
 		self.m_txtHSpacing = wx.TextCtrl( self, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bHSizer3.Add( self.m_txtHSpacing, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.m_lblUnit2 = wx.StaticText( self, wx.ID_ANY, u"mm", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_lblUnit2.Wrap( -1 )
+
+		bHSizer3.Add( self.m_lblUnit2, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
 		bMainSizer.Add( bHSizer3, 1, wx.EXPAND, 5 )
