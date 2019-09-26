@@ -56,9 +56,6 @@ Tool I got inspired by:
 - Altium Via Stitching feature!
 - https://github.com/jsreynaud/kicad-action-scripts
 
-Very good tools makers:
-- https://github.com/xesscorp/
-
 ## Greetings
 
 Hope someone find my work useful or at least *inspiring* to create something else/better.
