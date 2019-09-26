@@ -68,18 +68,10 @@ class ViaStitchingDialog(viastitching_gui):
         netname = self.m_cbNet.GetStringSelection()
         netcode = self.board.GetNetcodeFromNetname(netname)
         viacount = 0
-        #TODO: iterate trough board vias
-        #check if via is inside area
-        #check if via has the same: size & drill & net
-        #remove via
-        wx.MessageBox("Cleaning!")
+        #TODO: check if via has the same net
         for item in self.board.GetTracks():
             if type(item) is pcbnew.VIA:
-                pos = item.GetPosition()
-                item_drillsize = item.GetDrillValue()
-                item_size = item.GetWidth()
-                wx.MessageBox("Via found d%f s%f" % (item_drillsize, item_size))
-                if(self.area.HitTestInsideZone(pos) and item_drillsize == drillsize and item_size == viasize):
+                if self.area.HitTestInsideZone(item.GetPosition()) and item.GetDrillValue() == drillsize and item.GetWidth() == viasize and item.GetNetname() == netname:
                     self.board.Remove(item)
         if viacount > 0:
             wx.MessageBox("Removed: %d vias!" % viacount)
