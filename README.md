@@ -21,6 +21,14 @@ If everything goes fine you'll get something like this:
 
 ![viastitching result](pictures/viastitching_result.PNG?raw=true "ViaStitching result")
 
+## TODO
+
+Some features still to code:
+- Draw a better UI (if anyone willing to contribute please read the following section).
+- Collision between new vias and underlying objects: pads, modules, vias
+- Avoid placing vias near area edges
+- Any request?
+
 ## Coding notes
 
 If you are willing to make any modification to the GUI (you're welcome) trough __wxFormBuilder__ (```viastitching.fbp``` file) remember to modify this line (around line 21 ```viastitching_gui.py```):
