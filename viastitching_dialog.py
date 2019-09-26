@@ -44,8 +44,6 @@ class ViaStitchingDialog(viastitching_gui):
             if area.IsSelected():
                 if not area.IsOnCopperLayer():
                     return False
-#                elif area.GetDoNotAllowVias():
-#                    return False
                 elif area.GetDoNotAllowCopperPour():
                     return False
                 self.area = area
