@@ -23,7 +23,7 @@ If everything goes fine you'll get something like this:
 
 ## Coding notes
 
-If you are willing to make any modification to the GUI (you're welcome) trough __wxFormBuilder__ (```addnet.fbp``` file) remember to modify this line (around line 21 ```addnet_gui.py```):
+If you are willing to make any modification to the GUI (you're welcome) trough __wxFormBuilder__ (```viastitching.fbp``` file) remember to modify this line (around line 21 ```viastitching_gui.py```):
 ```
 self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 ```
