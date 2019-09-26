@@ -29,7 +29,7 @@ Some features still to code:
 - Draw a better UI (if anyone willing to contribute please read the following section).
 - Collision between new vias and underlying objects: tracks, pads, modules, vias.
 - Avoid placing vias near area edges.
-- History management.
+- History management (board commit).
 - Add cleanup area function.
 - Any request?
 
