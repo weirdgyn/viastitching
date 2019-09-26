@@ -32,11 +32,11 @@ class viastitching_gui ( wx.Dialog ):
 		self.m_lblNetName = wx.StaticText( self, wx.ID_ANY, u"Net name", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_lblNetName.Wrap( -1 )
 
-		bHSizer1.Add( self.m_lblNetName, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		bHSizer1.Add( self.m_lblNetName, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT|wx.ALL, 5 )
 
 		m_cbNetChoices = []
 		self.m_cbNet = wx.ComboBox( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, m_cbNetChoices, wx.CB_DROPDOWN|wx.CB_READONLY|wx.CB_SORT )
-		bHSizer1.Add( self.m_cbNet, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		bHSizer1.Add( self.m_cbNet, 0, wx.ALL, 5 )
 
 
 		bMainSizer.Add( bHSizer1, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, 5 )
@@ -48,10 +48,10 @@ class viastitching_gui ( wx.Dialog ):
 
 		bHSizer2.Add( self.m_lblVia, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-		self.m_txtViaSize = wx.TextCtrl( self, wx.ID_ANY, u"0.8", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_txtViaSize = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bHSizer2.Add( self.m_txtViaSize, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-		self.m_txtViaDrillSize = wx.TextCtrl( self, wx.ID_ANY, u"0.4", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_txtViaDrillSize = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bHSizer2.Add( self.m_txtViaDrillSize, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.m_lblUnit1 = wx.StaticText( self, wx.ID_ANY, u"mm", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -82,6 +82,18 @@ class viastitching_gui ( wx.Dialog ):
 
 
 		bMainSizer.Add( bHSizer3, 1, wx.EXPAND, 5 )
+
+		bHSizer5 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_rFill = wx.RadioButton( self, wx.ID_ANY, u"Fill", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_rFill.SetValue( True )
+		bHSizer5.Add( self.m_rFill, 0, wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.m_rClear = wx.RadioButton( self, wx.ID_ANY, u"Clear", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bHSizer5.Add( self.m_rClear, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+
+		bMainSizer.Add( bHSizer5, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 		bHSizer4 = wx.BoxSizer( wx.HORIZONTAL )
 

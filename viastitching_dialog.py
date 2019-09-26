@@ -61,6 +61,30 @@ class ViaStitchingDialog(viastitching_gui):
             index = self.m_cbNet.FindString(self.net)
             self.m_cbNet.Select(index)                        
 
+    def ClearArea(self):
+        drillsize = pcbnew.FromMM(float(self.m_txtViaDrillSize.GetValue()))
+        viasize = pcbnew.FromMM(float(self.m_txtViaSize.GetValue()))
+        bbox = self.area.GetBoundingBox()
+        netname = self.m_cbNet.GetStringSelection()
+        netcode = self.board.GetNetcodeFromNetname(netname)
+        viacount = 0
+        #TODO: iterate trough board vias
+        #check if via is inside area
+        #check if via has the same: size & drill & net
+        #remove via
+        wx.MessageBox("Cleaning!")
+        for item in self.board.GetTracks():
+            if type(item) is pcbnew.VIA:
+                pos = item.GetPosition()
+                item_drillsize = item.GetDrillValue()
+                item_size = item.GetWidth()
+                wx.MessageBox("Via found d%f s%f" % (item_drillsize, item_size))
+                if(self.area.HitTestInsideZone(pos) and item_drillsize == drillsize and item_size == viasize):
+                    self.board.Remove(item)
+        if viacount > 0:
+            wx.MessageBox("Removed: %d vias!" % viacount)
+            pcbnew.Refresh()
+
     def FillupArea(self):
         drillsize = pcbnew.FromMM(float(self.m_txtViaDrillSize.GetValue()))
         viasize = pcbnew.FromMM(float(self.m_txtViaSize.GetValue()))
@@ -83,6 +107,8 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetPosition(pcbnew.wxPoint(x,y))
                     via.SetLayer(self.area.GetLayer())
                     via.SetNetCode(netcode)
+                    via.SetDrill(drillsize)
+                    via.SetWidth(viasize)
                     self.board.Add(via)
                     viacount +=1
                 y += step_y
@@ -92,7 +118,10 @@ class ViaStitchingDialog(viastitching_gui):
             pcbnew.Refresh()
 
     def onProcessAction(self, event):
-        self.FillupArea()
+        if(self.m_rFill.GetValue()):
+            self.FillupArea()
+        else:
+            self.ClearArea()
         self.Destroy()
 
     def onCloseWindow(self, event):
