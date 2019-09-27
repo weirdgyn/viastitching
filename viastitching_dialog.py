@@ -16,7 +16,6 @@ class ViaStitchingDialog(viastitching_gui):
     """Class that gathers all the Gui control"""
 
     def __init__(self, board):
-        #TODO: set unit conversion based on user preferences
         """Init the brand new instance"""
         super(ViaStitchingDialog, self).__init__(None)
         self.SetTitle("ViaStitching v{0}".format(__version__))
@@ -55,7 +54,13 @@ class ViaStitchingDialog(viastitching_gui):
             wx.MessageBox("Please select a valid area")
             self.Destroy()
         else:
+            self.CollectOverlappingItems()
             self.PopulateNets()
+
+    def CollectOverlappingItems(self):
+        modules = board.GetModules()
+        for mod in modules:
+            pass
 
     def GetAreaConfig(self):
         for i in range(0, self.board.GetAreaCount()):
@@ -83,7 +88,6 @@ class ViaStitchingDialog(viastitching_gui):
     def ClearArea(self):
         drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
         viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
-        bbox = self.area.GetBoundingBox()
         netname = self.m_cbNet.GetStringSelection()
         netcode = self.board.GetNetcodeFromNetname(netname)
         #commit = pcbnew.COMMIT()
