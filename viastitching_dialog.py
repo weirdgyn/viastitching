@@ -51,7 +51,6 @@ class ViaStitchingDialog(viastitching_gui):
         via_dim_list.push_back(via_dims)
         self.area = None
         self.net = None
-        units_mode = pcbnew.GetUserUnits()
         if not self.GetAreaConfig():
             wx.MessageBox("Please select a valid area")
             self.Destroy()
