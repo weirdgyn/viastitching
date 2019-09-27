@@ -67,13 +67,17 @@ class ViaStitchingDialog(viastitching_gui):
         bbox = self.area.GetBoundingBox()
         netname = self.m_cbNet.GetStringSelection()
         netcode = self.board.GetNetcodeFromNetname(netname)
+        #commit = pcbnew.COMMIT()
         viacount = 0
         for item in self.board.GetTracks():
             if type(item) is pcbnew.VIA:
                 if self.area.HitTestInsideZone(item.GetPosition()) and item.GetDrillValue() == drillsize and item.GetWidth() == viasize and item.GetNetname() == netname:
                     self.board.Remove(item)
+                    #commit.Remove(item)
+                    viacount+=1
         if viacount > 0:
             wx.MessageBox("Removed: %d vias!" % viacount)
+            #commit.Push()
             pcbnew.Refresh()
 
     def FillupArea(self):
@@ -88,6 +92,7 @@ class ViaStitchingDialog(viastitching_gui):
         step_y = pcbnew.FromMM(float(self.m_txtVSpacing.GetValue()))
         netname = self.m_cbNet.GetStringSelection()
         netcode = self.board.GetNetcodeFromNetname(netname)
+        #commit = pcbnew.COMMIT()
         viacount = 0
         x = left
         while x <= right:
@@ -101,11 +106,13 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
                     self.board.Add(via)
+                    #commit.Add(via)
                     viacount +=1
                 y += step_y
             x += step_x
         if viacount > 0:
             wx.MessageBox("Implanted: %d vias!" % viacount)
+            #commit.Push()
             pcbnew.Refresh()
 
     def onProcessAction(self, event):
