@@ -24,19 +24,39 @@ class ViaStitchingDialog(viastitching_gui):
         self.m_btnCancel.Bind(wx.EVT_BUTTON, self.onCloseWindow)
         self.m_btnOk.Bind(wx.EVT_BUTTON, self.onProcessAction)
         self.board = pcbnew.GetBoard()
+        self.ToUserUnit = None
+        self.FromUserUnit = None
+        units_mode = pcbnew.GetUserUnits()
+        if units_mode == 0:
+            self.ToUserUnit = pcbnew.ToMils
+            self.FromUserUnit = pcbnew.FromMils
+            self.m_lblUnit1.SetLabel("mils")
+            self.m_lblUnit2.SetLabel("mils")
+            self.m_txtVSpacing.SetValue("40")
+            self.m_txtHSpacing.SetValue("40")
+        elif units_mode == 1:
+            self.ToUserUnit = pcbnew.ToMM
+            self.FromUserUnit = pcbnew.FromMM
+            self.m_lblUnit1.SetLabel("mm")
+            self.m_lblUnit2.SetLabel("mm")
+            self.m_txtVSpacing.SetValue("1")
+            self.m_txtHSpacing.SetValue("1")
+        elif units_mode == -1:
+            wx.MessageBox("Not a valid frame")
+            self.Destroy()
         via_dim_list = self.board.GetViasDimensionsList()
         via_dims = via_dim_list.pop()
-        self.m_txtViaSize.SetValue("%.3f" % pcbnew.ToMM(via_dims.m_Diameter))
-        self.m_txtViaDrillSize.SetValue("%.3f" % pcbnew.ToMM(via_dims.m_Drill))
+        self.m_txtViaSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Diameter))
+        self.m_txtViaDrillSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Drill))
         via_dim_list.push_back(via_dims)
         self.area = None
         self.net = None
+        units_mode = pcbnew.GetUserUnits()
         if not self.GetAreaConfig():
             wx.MessageBox("Please select a valid area")
             self.Destroy()
         else:
             self.PopulateNets()
-
 
     def GetAreaConfig(self):
         for i in range(0, self.board.GetAreaCount()):
@@ -56,14 +76,14 @@ class ViaStitchingDialog(viastitching_gui):
         for netname, net in nets.items():
             netname = net.GetNetname()
             if netname != None and netname != "":
-                        self.m_cbNet.Append(netname)
+                self.m_cbNet.Append(netname)
         if self.net != None:
             index = self.m_cbNet.FindString(self.net)
             self.m_cbNet.Select(index)                        
 
     def ClearArea(self):
-        drillsize = pcbnew.FromMM(float(self.m_txtViaDrillSize.GetValue()))
-        viasize = pcbnew.FromMM(float(self.m_txtViaSize.GetValue()))
+        drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
+        viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
         bbox = self.area.GetBoundingBox()
         netname = self.m_cbNet.GetStringSelection()
         netcode = self.board.GetNetcodeFromNetname(netname)
@@ -81,15 +101,15 @@ class ViaStitchingDialog(viastitching_gui):
             pcbnew.Refresh()
 
     def FillupArea(self):
-        drillsize = pcbnew.FromMM(float(self.m_txtViaDrillSize.GetValue()))
-        viasize = pcbnew.FromMM(float(self.m_txtViaSize.GetValue()))
+        drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
+        viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
+        step_x = self.FromUserUnit(float(self.m_txtHSpacing.GetValue()))
+        step_y = self.FromUserUnit(float(self.m_txtVSpacing.GetValue()))
         bbox = self.area.GetBoundingBox()
         top = bbox.GetTop()
         bottom = bbox.GetBottom()
         right = bbox.GetRight()
         left = bbox.GetLeft()
-        step_x = pcbnew.FromMM(float(self.m_txtHSpacing.GetValue()))
-        step_y = pcbnew.FromMM(float(self.m_txtVSpacing.GetValue()))
         netname = self.m_cbNet.GetStringSelection()
         netcode = self.board.GetNetcodeFromNetname(netname)
         #commit = pcbnew.COMMIT()
