@@ -26,8 +26,8 @@ After stitching you area is always a good practice perform a DRC.
 ## TODO
 
 Some features still to code:
-- Match user units (mm/inches).
-- Add cleanup area function.
+- ~~Match user units (mm/inches).~~
+- ~~Add cleanup area function.~~
 - Draw a better UI (if anyone is willing to contribute please read the following section).
 - Collision between new vias and underlying objects: tracks, pads, modules, vias.
 - Avoid placing vias near area edges (define clearance).
