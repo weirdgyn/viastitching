@@ -21,7 +21,8 @@ If everything goes fine you'll get something like this:
 
 ![viastitching result](pictures/viastitching_result.PNG?raw=true "ViaStitching result")
 
-After stitching you area is always a good practice perform a DRC. 
+After stitching you area is always a good practice perform a DRC.
+The default action of the dialog is the __Fill__ action (as you can notice from the radio-button on the bottom of the dialog) the __Clear__ action works the in the opposite way it removes from the selected area any vias matching settings (i.e. same net, same size, same drill). Beware: __Clear__ will not distinguish vias implanted by __Fill__ from user placed ones and will remove both of them if they match the depicted criteria.
 
 ## TODO
 
