@@ -34,6 +34,7 @@ Some features still to code:
 - Collision between new vias and underlying objects: tracks, pads, modules, vias.
 - Avoid placing vias near area edges (define clearance).
 - History management (board commit).
+- Localization.
 - Any request?
 
 ## Coding notes
