@@ -15,7 +15,7 @@
         <property name="first_id">1000</property>
         <property name="help_provider">none</property>
         <property name="indent_with_spaces"></property>
-        <property name="internationalize">0</property>
+        <property name="internationalize">1</property>
         <property name="name">viastitching</property>
         <property name="namespace"></property>
         <property name="path">C:\Program Files\KiCad\share\kicad\scripting\plugins\viastitching</property>
@@ -62,7 +62,7 @@
                     <property name="border">5</property>
                     <property name="flag">wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxBoxSizer" expanded="0">
+                    <object class="wxBoxSizer" expanded="1">
                         <property name="minimum_size"></property>
                         <property name="name">bHSizer1</property>
                         <property name="orient">wxHORIZONTAL</property>
@@ -721,7 +721,7 @@
                     <property name="border">5</property>
                     <property name="flag">wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</property>
                     <property name="proportion">1</property>
-                    <object class="wxBoxSizer" expanded="0">
+                    <object class="wxBoxSizer" expanded="1">
                         <property name="minimum_size"></property>
                         <property name="name">bHSizer5</property>
                         <property name="orient">wxHORIZONTAL</property>

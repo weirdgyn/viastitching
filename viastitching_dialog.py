@@ -7,9 +7,11 @@
 
 import wx
 import pcbnew
+import gettext
 
 from viastitching_gui import viastitching_gui
 
+_ = gettext.gettext
 __version__ = "0.1"
 
 class ViaStitchingDialog(viastitching_gui):
@@ -18,7 +20,7 @@ class ViaStitchingDialog(viastitching_gui):
     def __init__(self, board):
         """Init the brand new instance"""
         super(ViaStitchingDialog, self).__init__(None)
-        self.SetTitle("ViaStitching v{0}".format(__version__))
+        self.SetTitle(_(u"ViaStitching v{0}").format(__version__))
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
         self.m_btnCancel.Bind(wx.EVT_BUTTON, self.onCloseWindow)
         self.m_btnOk.Bind(wx.EVT_BUTTON, self.onProcessAction)
@@ -29,19 +31,19 @@ class ViaStitchingDialog(viastitching_gui):
         if units_mode == 0:
             self.ToUserUnit = pcbnew.ToMils
             self.FromUserUnit = pcbnew.FromMils
-            self.m_lblUnit1.SetLabel("mils")
-            self.m_lblUnit2.SetLabel("mils")
+            self.m_lblUnit1.SetLabel(_(u"mils"))
+            self.m_lblUnit2.SetLabel(_(u"mils"))
             self.m_txtVSpacing.SetValue("40")
             self.m_txtHSpacing.SetValue("40")
         elif units_mode == 1:
             self.ToUserUnit = pcbnew.ToMM
             self.FromUserUnit = pcbnew.FromMM
-            self.m_lblUnit1.SetLabel("mm")
-            self.m_lblUnit2.SetLabel("mm")
+            self.m_lblUnit1.SetLabel(_(u"mm"))
+            self.m_lblUnit2.SetLabel(_(u"mm"))
             self.m_txtVSpacing.SetValue("1")
             self.m_txtHSpacing.SetValue("1")
         elif units_mode == -1:
-            wx.MessageBox("Not a valid frame")
+            wx.MessageBox(_(u"Not a valid frame"))
             self.Destroy()
         via_dim_list = self.board.GetViasDimensionsList()
         via_dims = via_dim_list.pop()
@@ -51,14 +53,14 @@ class ViaStitchingDialog(viastitching_gui):
         self.area = None
         self.net = None
         if not self.GetAreaConfig():
-            wx.MessageBox("Please select a valid area")
+            wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
         else:
             self.CollectOverlappingItems()
             self.PopulateNets()
 
     def CollectOverlappingItems(self):
-        modules = board.GetModules()
+        modules = self.board.GetModules()
         for mod in modules:
             pass
 
@@ -99,7 +101,7 @@ class ViaStitchingDialog(viastitching_gui):
                     #commit.Remove(item)
                     viacount+=1
         if viacount > 0:
-            wx.MessageBox("Removed: %d vias!" % viacount)
+            wx.MessageBox(_(u"Removed: %d vias!") % viacount)
             #commit.Push()
             pcbnew.Refresh()
 
@@ -134,7 +136,7 @@ class ViaStitchingDialog(viastitching_gui):
                 y += step_y
             x += step_x
         if viacount > 0:
-            wx.MessageBox("Implanted: %d vias!" % viacount)
+            wx.MessageBox(_(u"Implanted: %d vias!") % viacount)
             #commit.Push()
             pcbnew.Refresh()
 

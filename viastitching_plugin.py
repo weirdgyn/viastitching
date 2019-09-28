@@ -8,16 +8,19 @@
 import wx
 import os
 import pcbnew
+import gettext
 
 from pcbnew import ActionPlugin, GetBoard
 from viastitching_dialog import InitViaStitchingDialog
 
+_ = gettext.gettext
+
 class ViaStitchingPlugin(ActionPlugin):
     """Class that gathers the actionplugin stuff"""
     def defaults(self):
-        self.name = "ViaStitching"
-        self.category = "Modify PCB"
-        self.description = "Create a vias stitching pattern"
+        self.name = _(u"ViaStitching")
+        self.category = _(u"Modify PCB")
+        self.description = _(u"Create a vias stitching pattern")
         self.show_toolbar_button = True
         self.icon_file_name = os.path.join(os.path.dirname(__file__), 'viastitching.png')
 
