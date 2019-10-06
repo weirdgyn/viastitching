@@ -143,7 +143,7 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetNetCode(netcode)
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
-                    if GetMinDistance(via.GetPosition(), self.area, clearance) >= clearance:
+                    if (clearance == 0) or (GetMinDistance(via.GetPosition(), self.area, clearance) >= clearance):
                         self.board.Add(via)
                         #commit.Add(via)
                         viacount +=1
