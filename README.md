@@ -32,6 +32,7 @@ Some features still to code:
 - ~~Add clear area function.~~
 - Draw a better UI (if anyone is willing to contribute please read the following section).
 - Collision between new vias and underlying objects: tracks, pads, modules, vias.
+- Different fillup patterns/modes (bounding box, centered spiral).
 - Avoid placing vias near area edges (define clearance).
 - History management (board commit).
 - Localization.
