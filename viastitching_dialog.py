@@ -108,11 +108,11 @@ class ViaStitchingDialog(viastitching_gui):
             pcbnew.Refresh()
 
     def GetMinDistance(self, p1, area, clearance):
-        corners = area.GetNumCorners()
-        for index in range(0..corners):
+        for index in range(0, area.GetNumCorners()):
             corner = area.GetCornerPosition(index)
             p2 = corner.getWxPoint()
-            distance = sqrt((p2.x - p1.x)**2 + (p2.y - p1.y**2))
+            distance = sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2)
+            #TODO: modify to check distance from edges
             if distance < clearance:
                 clearance = distance
         return clearance     
@@ -138,12 +138,13 @@ class ViaStitchingDialog(viastitching_gui):
             while y <= bottom:
                 if self.area.HitTestInsideZone(pcbnew.wxPoint(x,y)):
                     via = pcbnew.VIA(self.board)
-                    via.SetPosition(pcbnew.wxPoint(x,y))
+                    p = pcbnew.wxPoint(x,y)
+                    via.SetPosition(p)
                     via.SetLayer(self.area.GetLayer())
                     via.SetNetCode(netcode)
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
-                    if (clearance == 0) or (GetMinDistance(via.GetPosition(), self.area, clearance) >= clearance):
+                    if (clearance == 0) or (self.GetMinDistance(p, self.area, clearance) >= clearance):
                         self.board.Add(via)
                         #commit.Add(via)
                         viacount +=1
