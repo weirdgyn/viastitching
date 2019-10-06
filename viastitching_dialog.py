@@ -8,8 +8,10 @@
 import wx
 import pcbnew
 import gettext
+import math
 
 from viastitching_gui import viastitching_gui
+from math import sqrt
 
 _ = gettext.gettext
 __version__ = "0.1"
@@ -57,7 +59,7 @@ class ViaStitchingDialog(viastitching_gui):
             self.Destroy()
         else:
             self.CollectOverlappingItems()
-            self.PopulateNets()
+            self.PopulateNets() 
 
     def CollectOverlappingItems(self):
         modules = self.board.GetModules()
@@ -105,11 +107,22 @@ class ViaStitchingDialog(viastitching_gui):
             #commit.Push()
             pcbnew.Refresh()
 
+    def GetMinDistance(self, p1, area, clearance):
+        corners = area.GetNumCorners()
+        for index in range(0..corners):
+            corner = area.GetCornerPosition(index)
+            p2 = corner.getWxPoint()
+            distance = sqrt((p2.x - p1.x)**2 + (p2.y - p1.y**2))
+            if distance < clearance:
+                clearance = distance
+        return clearance     
+
     def FillupArea(self):
         drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
         viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
         step_x = self.FromUserUnit(float(self.m_txtHSpacing.GetValue()))
         step_y = self.FromUserUnit(float(self.m_txtVSpacing.GetValue()))
+        clearance = self.FromUserUnit(float(self.m_txtClearance.GetValue()))
         bbox = self.area.GetBoundingBox()
         top = bbox.GetTop()
         bottom = bbox.GetBottom()
@@ -123,16 +136,17 @@ class ViaStitchingDialog(viastitching_gui):
         while x <= right:
             y = top
             while y <= bottom:
-                if(self.area.HitTestInsideZone(pcbnew.wxPoint(x,y))):
+                if self.area.HitTestInsideZone(pcbnew.wxPoint(x,y)):
                     via = pcbnew.VIA(self.board)
                     via.SetPosition(pcbnew.wxPoint(x,y))
                     via.SetLayer(self.area.GetLayer())
                     via.SetNetCode(netcode)
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
-                    self.board.Add(via)
-                    #commit.Add(via)
-                    viacount +=1
+                    if GetMinDistance(via.GetPosition(), self.area, clearance) >= clearance:
+                        self.board.Add(via)
+                        #commit.Add(via)
+                        viacount +=1
                 y += step_y
             x += step_x
         if viacount > 0:
