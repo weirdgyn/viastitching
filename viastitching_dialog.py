@@ -107,15 +107,36 @@ class ViaStitchingDialog(viastitching_gui):
             #commit.Push()
             pcbnew.Refresh()
 
-    def GetMinDistance(self, p1, area, clearance):
-        for index in range(0, area.GetNumCorners()):
-            corner = area.GetCornerPosition(index)
+    def CheckClearance(self, p1, area, clearance):
+        corners = area.GetNumCorners()
+        #Calculate minimum distance from corners
+        for i in range(0, corners):
+            corner = area.GetCornerPosition(i)
             p2 = corner.getWxPoint()
             distance = sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2)
-            #TODO: modify to check distance from edges
             if distance < clearance:
-                clearance = distance
-        return clearance     
+                return False
+
+        #Calculate minimum distance from edges
+        for i in range(0, corners):
+            if i == corners-1:
+                corner1 = area.GetCornerPosition(corners-1)
+                corner2 = area.GetCornerPosition(0)
+            else:
+                corner1 = area.GetCornerPosition(i)
+                corner2 = area.GetCornerPosition(i+1)
+            pc1 = corner1.getWxPoint()
+            pc2 = corner2.getWxPoint()
+            if pc1.x != pc2.x:
+                m = (pc1.y - pc2.y)/(pc1.x - pc2.x)
+                q = pc1.y - (m*pc1.x)
+                distance = math.fabs(p1.y-m*p1.x-q)/math.sqrt(1+m**2)
+            else:
+                distance = math.fabs(pc1.x - p1.x)
+            if distance < clearance:
+                return False
+
+        return True     
 
     def FillupArea(self):
         drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
@@ -144,7 +165,7 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetNetCode(netcode)
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
-                    if (clearance == 0) or (self.GetMinDistance(p, self.area, clearance) >= clearance):
+                    if (clearance == 0) or (self.CheckClearance(p, self.area, clearance)):
                         self.board.Add(via)
                         #commit.Add(via)
                         viacount +=1
@@ -154,6 +175,8 @@ class ViaStitchingDialog(viastitching_gui):
             wx.MessageBox(_(u"Implanted: %d vias!") % viacount)
             #commit.Push()
             pcbnew.Refresh()
+        else:
+            wx.MessageBox(_(u"No vias implanted!"))
 
     def onProcessAction(self, event):
         if(self.m_rFill.GetValue()):
