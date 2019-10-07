@@ -15,6 +15,7 @@ from math import sqrt
 
 _ = gettext.gettext
 __version__ = "0.1"
+__timecode__= 1972
 
 class ViaStitchingDialog(viastitching_gui):
     """Class that gathers all the Gui control"""
@@ -90,6 +91,7 @@ class ViaStitchingDialog(viastitching_gui):
             self.m_cbNet.Select(index)                        
 
     def ClearArea(self):
+        undo = self.m_chkClearOwn.IsChecked()
         drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
         viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
         netname = self.m_cbNet.GetStringSelection()
@@ -99,9 +101,13 @@ class ViaStitchingDialog(viastitching_gui):
         for item in self.board.GetTracks():
             if type(item) is pcbnew.VIA:
                 if self.area.HitTestInsideZone(item.GetPosition()) and item.GetDrillValue() == drillsize and item.GetWidth() == viasize and item.GetNetname() == netname:
-                    self.board.Remove(item)
+                    if not undo:
+                        self.board.Remove(item)
+                        viacount+=1
+                    elif item.GetTimeStamp() == __timecode__:
+                        self.board.Remove(item)
+                        viacount+=1
                     #commit.Remove(item)
-                    viacount+=1
         if viacount > 0:
             wx.MessageBox(_(u"Removed: %d vias!") % viacount)
             #commit.Push()
@@ -165,6 +171,7 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetNetCode(netcode)
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
+                    via.SetTimeStamp(__timecode__)
                     if (clearance == 0) or (self.CheckClearance(p, self.area, clearance)):
                         self.board.Add(via)
                         #commit.Add(via)
