@@ -25,7 +25,7 @@ After stitching you area is always a good practice to perform a DRC.
 
 As you can see some vias overlap with some PCB elements (tracks, pads, vias etc) at this development stage the removal of conflicting vias is up to the user with future releases the implant process will prevent vias to overlap with other elements.
 
-The default action of the dialog is the __Fill__ action (as you can notice from the radio-button on the bottom of the dialog) the __Clear__ action works the in the opposite: way it removes from the selected area any vias matching settings (i.e. same net, same size, same drill specified in dialog fields). Beware: __Clear__ will not distinguish vias implanted by __Fill__ from user placed ones until you check the specific checkbox, and will remove all of them if they match the values entered. If you click on __clear only plugin placed vias__ checbox the plugin will inspect vias for a specific signature and remove only those matching it this can be used as an __Undo__ feature.
+The default action of the dialog is the __Fill__ action (as you can notice from the radio-button on the bottom of the dialog) the __Clear__ action works the in the opposite: way it removes from the selected area any vias matching settings (i.e. same net, same size, same drill specified in dialog fields). Beware: __Clear__ will not distinguish vias implanted by __Fill__ from user placed ones until you check the specific checkbox, and will remove all of them if they match the values entered. If you click on __clear only plugin placed vias__ checbox the plugin will inspect vias for a specific signature and remove only those matching it: this can be used as an __Undo__ feature.
 
 ## TODO
 
