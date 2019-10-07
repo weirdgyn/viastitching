@@ -18,10 +18,7 @@ __version__ = "0.1"
 __timecode__= 1972
 
 class ViaStitchingDialog(viastitching_gui):
-    """Class that gathers all the Gui control"""
-
     def __init__(self, board):
-        """Init the brand new instance"""
         super(ViaStitchingDialog, self).__init__(None)
         self.SetTitle(_(u"ViaStitching v{0}").format(__version__))
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
@@ -196,7 +193,6 @@ class ViaStitchingDialog(viastitching_gui):
         self.Destroy()
 
 def InitViaStitchingDialog(board):
-    """Launch the dialog"""
     dlg = ViaStitchingDialog(board)
     dlg.Show(True)
     return dlg

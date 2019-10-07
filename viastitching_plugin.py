@@ -16,7 +16,6 @@ from viastitching_dialog import InitViaStitchingDialog
 _ = gettext.gettext
 
 class ViaStitchingPlugin(ActionPlugin):
-    """Class that gathers the actionplugin stuff"""
     def defaults(self):
         self.name = _(u"ViaStitching")
         self.category = _(u"Modify PCB")
