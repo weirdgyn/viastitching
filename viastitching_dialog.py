@@ -58,7 +58,7 @@ class ViaStitchingDialog(viastitching_gui):
             wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
         else:
-            self.CollectOverlappingItems()
+            #self.CollectOverlappingItems()
             self.PopulateNets() 
 
     def CollectOverlappingItems(self):

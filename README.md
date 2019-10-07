@@ -57,7 +57,7 @@ This modification allows the code to work with __Python 2__ (that's the standard
 
 ## kicad-action-scripts - ViaStitching plugin similarity
 
-Yes my plugin is pretty similar to this plugin but I'm using a radical different approach in coding. At the time I wrote this plugin unluckly __jsreynaud__ plugin wasn't working but I bet he will fix it.
+Yes my plugin is pretty similar to this plugin but I'm using a radically different approach in coding. At the time I wrote this plugin unluckly __jsreynaud__ plugin wasn't working but I bet he will fix it.
 
 ## References
 
