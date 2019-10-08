@@ -52,17 +52,21 @@ class ViaStitchingDialog(viastitching_gui):
         via_dim_list.push_back(via_dims)
         self.area = None
         self.net = None
+        self.overlappings = None
         if not self.GetAreaConfig():
             wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
         else:
-            #self.CollectOverlappingItems()
+            self.GetOverlappingItems()
             self.PopulateNets() 
 
-    def CollectOverlappingItems(self):
+    def GetOverlappingItems(self):
+        area_bbox = self.area.GetBoundingBox()
         modules = self.board.GetModules()
+        self.overlappings = []
         for mod in modules:
-            pass
+            if mod.GetBoundingBox().Intersects(area_bbox):
+                self.overlappings.append(mod)
 
     def GetAreaConfig(self):
         for i in range(0, self.board.GetAreaCount()):
@@ -141,6 +145,14 @@ class ViaStitchingDialog(viastitching_gui):
 
         return True     
 
+    def CheckOverlap(self, point):
+        for mod in self.overlappings:
+            wx.MessageBox(_(u"Checking {0}").format(mod.GetReference()))
+            if mod.Contains(point):
+                wx.MessageBox(_(u"Overlap with {0}").format(mod.GetReference()))
+                return True
+        return False
+
     def FillupArea(self):
         drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
         viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
@@ -169,10 +181,11 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
                     via.SetTimeStamp(__timecode__)
-                    if (clearance == 0) or (self.CheckClearance(p, self.area, clearance)):
-                        self.board.Add(via)
-                        #commit.Add(via)
-                        viacount +=1
+                    if (clearance == 0) or self.CheckClearance(p, self.area, clearance):
+                        if self.CheckOverlap(p):
+                            self.board.Add(via)
+                            #commit.Add(via)
+                            viacount +=1
                 y += step_y
             x += step_x
         if viacount > 0:
