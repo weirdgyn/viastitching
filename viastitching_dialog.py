@@ -97,13 +97,13 @@ class ViaStitchingDialog(viastitching_gui):
         viacount = 0
         for item in self.board.GetTracks():
             if type(item) is pcbnew.VIA:
-                if self.area.HitTestInsideZone(item.GetPosition()) and item.GetDrillValue() == drillsize and item.GetWidth() == viasize and item.GetNetname() == netname:
-                    if not undo:
-                        self.board.Remove(item)
-                        viacount+=1
-                    elif item.GetTimeStamp() == __timecode__:
-                        self.board.Remove(item)
-                        viacount+=1
+                if undo and (item.GetTimeStamp() == __timecode__):
+                    self.board.Remove(item)
+                    viacount+=1
+                    #commit.Remove(item)
+                elif not undo and self.area.HitTestInsideZone(item.GetPosition()) and item.GetDrillValue() == drillsize and item.GetWidth() == viasize and item.GetNetname() == netname:
+                    self.board.Remove(item)
+                    viacount+=1
                     #commit.Remove(item)
         if viacount > 0:
             wx.MessageBox(_(u"Removed: %d vias!") % viacount)
