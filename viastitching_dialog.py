@@ -28,6 +28,7 @@ class ViaStitchingDialog(viastitching_gui):
         self.ToUserUnit = None
         self.FromUserUnit = None
         units_mode = pcbnew.GetUserUnits()
+
         if units_mode == 0:
             self.ToUserUnit = pcbnew.ToMils
             self.FromUserUnit = pcbnew.FromMils
@@ -45,6 +46,7 @@ class ViaStitchingDialog(viastitching_gui):
         elif units_mode == -1:
             wx.MessageBox(_(u"Not a valid frame"))
             self.Destroy()
+
         via_dim_list = self.board.GetViasDimensionsList()
         via_dims = via_dim_list.pop()
         self.m_txtViaSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Diameter))
@@ -53,6 +55,7 @@ class ViaStitchingDialog(viastitching_gui):
         self.area = None
         self.net = None
         self.overlappings = None
+
         if not self.GetAreaConfig():
             wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
@@ -60,13 +63,16 @@ class ViaStitchingDialog(viastitching_gui):
             self.GetOverlappingItems()
             self.PopulateNets() 
 
+
     def GetOverlappingItems(self):
         area_bbox = self.area.GetBoundingBox()
         modules = self.board.GetModules()
         self.overlappings = []
-        for mod in modules:
-            if mod.GetBoundingBox().Intersects(area_bbox):
-                self.overlappings.append(mod)
+
+        for item in modules:
+            if item.GetBoundingBox().Intersects(area_bbox):
+                self.overlappings.append(item)
+
 
     def GetAreaConfig(self):
         for i in range(0, self.board.GetAreaCount()):
@@ -79,17 +85,22 @@ class ViaStitchingDialog(viastitching_gui):
                 self.area = area
                 self.net = area.GetNetname()
                 return True
+
         return False
+
 
     def PopulateNets(self):
         nets = self.board.GetNetsByName()
+
         for netname, net in nets.items():
             netname = net.GetNetname()
-            if netname != None and netname != "":
+            if (netname != None) and (netname != ""):
                 self.m_cbNet.Append(netname)
+
         if self.net != None:
             index = self.m_cbNet.FindString(self.net)
             self.m_cbNet.Select(index)                        
+
 
     def ClearArea(self):
         undo = self.m_chkClearOwn.IsChecked()
@@ -99,20 +110,23 @@ class ViaStitchingDialog(viastitching_gui):
         netcode = self.board.GetNetcodeFromNetname(netname)
         #commit = pcbnew.COMMIT()
         viacount = 0
+
         for item in self.board.GetTracks():
             if type(item) is pcbnew.VIA:
                 if undo and (item.GetTimeStamp() == __timecode__):
                     self.board.Remove(item)
                     viacount+=1
                     #commit.Remove(item)
-                elif not undo and self.area.HitTestInsideZone(item.GetPosition()) and item.GetDrillValue() == drillsize and item.GetWidth() == viasize and item.GetNetname() == netname:
+                elif (not undo) and self.area.HitTestInsideZone(item.GetPosition()) and (item.GetDrillValue() == drillsize) and (item.GetWidth() == viasize) and (item.GetNetname() == netname):
                     self.board.Remove(item)
                     viacount+=1
                     #commit.Remove(item)
+
         if viacount > 0:
             wx.MessageBox(_(u"Removed: %d vias!") % viacount)
             #commit.Push()
             pcbnew.Refresh()
+
 
     def CheckClearance(self, p1, area, clearance):
         corners = area.GetNumCorners()
@@ -134,24 +148,28 @@ class ViaStitchingDialog(viastitching_gui):
                 corner2 = area.GetCornerPosition(i+1)
             pc1 = corner1.getWxPoint()
             pc2 = corner2.getWxPoint()
+
             if pc1.x != pc2.x:
                 m = (pc1.y - pc2.y)/(pc1.x - pc2.x)
                 q = pc1.y - (m*pc1.x)
                 distance = math.fabs(p1.y-m*p1.x-q)/math.sqrt(1+m**2)
             else:
                 distance = math.fabs(pc1.x - p1.x)
+
             if distance < clearance:
                 return False
 
         return True     
 
+
     def CheckOverlap(self, point):
-        for mod in self.overlappings:
-            wx.MessageBox(_(u"Checking {0}").format(mod.GetReference()))
-            if mod.Contains(point):
-                wx.MessageBox(_(u"Overlap with {0}").format(mod.GetReference()))
-                return True
+        for item in self.overlappings:
+            if type(item) is pcbnew.MODULE:
+                if item.GetBoundingBox().Contains(point):
+                    return True
+
         return False
+
 
     def FillupArea(self):
         drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
@@ -169,6 +187,7 @@ class ViaStitchingDialog(viastitching_gui):
         #commit = pcbnew.COMMIT()
         viacount = 0
         x = left
+
         while x <= right:
             y = top
             while y <= bottom:
@@ -181,13 +200,15 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
                     via.SetTimeStamp(__timecode__)
+                    #TODO: split clearance / overlap binding
                     if (clearance == 0) or self.CheckClearance(p, self.area, clearance):
-                        if self.CheckOverlap(p):
+                        if not self.CheckOverlap(p):
                             self.board.Add(via)
                             #commit.Add(via)
                             viacount +=1
                 y += step_y
             x += step_x
+
         if viacount > 0:
             wx.MessageBox(_(u"Implanted: %d vias!") % viacount)
             #commit.Push()
@@ -195,15 +216,19 @@ class ViaStitchingDialog(viastitching_gui):
         else:
             wx.MessageBox(_(u"No vias implanted!"))
 
+
     def onProcessAction(self, event):
         if(self.m_rFill.GetValue()):
             self.FillupArea()
         else:
             self.ClearArea()
+
         self.Destroy()
+
 
     def onCloseWindow(self, event):
         self.Destroy()
+
 
 def InitViaStitchingDialog(board):
     dlg = ViaStitchingDialog(board)
