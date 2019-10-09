@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# AddNet for pcbnew 
+# ViaStitching for pcbnew 
 # This is the plugin WX dialog
 # (c) Michele Santucci 2019
 #

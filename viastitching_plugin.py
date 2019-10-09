@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# AddNet for pcbnew
+# ViaStitching for pcbnew
 # This is the action plugin interface
 # (c) Michele Santucci 2019
 #
