@@ -24,7 +24,8 @@ class ViaStitchingDialog(viastitching_gui):
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
         self.m_btnCancel.Bind(wx.EVT_BUTTON, self.onCloseWindow)
         self.m_btnOk.Bind(wx.EVT_BUTTON, self.onProcessAction)
-        self.m_rClear.Bind(wx.EVT_RADIOBUTTON, self.onClearCheck)
+        self.m_rClear.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonCheck)
+        self.m_rFill.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonCheck)
         self.board = pcbnew.GetBoard()
         self.ToUserUnit = None
         self.FromUserUnit = None
@@ -236,7 +237,7 @@ class ViaStitchingDialog(viastitching_gui):
         self.Destroy()
 
     
-    def onClearCheck(self, event):
+    def onRadioButtonCheck(self, event):
         if self.m_rClear.GetValue():
             self.m_chkClearOwn.Enable()
         else:

@@ -23,7 +23,7 @@ If everything goes fine you'll get something like this:
 
 After stitching you area is always a good practice to perform a DRC.
 
-As you can see some vias overlap with some PCB elements (tracks, pads, vias etc) at this development stage the removal of conflicting vias is up to the user with future releases the implant process will prevent vias to overlap with other elements.
+As you can see some vias overlap with some other PCB elements (tracks, ~~pads, vias~~ etc) at this development stage the removal of conflicting vias is up to the user with future releases the implant process will prevent vias to overlap with other elements.
 
 The default action of the dialog is the __Fill__ action (as you can notice from the radio-button on the bottom). __Clear__ action works the in the opposite way: it removes from the selected area any vias matching settings (i.e. same net, same size, same drill specified in dialog fields). Beware: __Clear__ will not distinguish vias implanted by __Fill__ from user ones until you check the specific checkbox, and will remove all of them if they match the values entered. If you click on __clear only plugin placed vias__ checbox the plugin will inspect vias for a specific signature and remove only those matching it: this can be used as an __Undo__ feature.
 
@@ -33,7 +33,7 @@ Some features still to code:
 - ~~Match user units (mm/inches).~~
 - ~~Add clear area function.~~
 - Draw a better UI (if anyone is willing to contribute please read the following section).
-- Collision between new vias and underlying objects: tracks, pads, modules, vias.
+- Collision between new vias and underlying objects: zones, tracks, ~~pads~~, ~~modules~~, ~~vias~~.
 - Different fillup patterns/modes (bounding box, centered spiral).
 - ~~Avoid placing vias near area edges (define clearance).~~
 - History management (board commit).
