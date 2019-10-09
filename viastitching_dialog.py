@@ -92,7 +92,8 @@ class ViaStitchingDialog(viastitching_gui):
 
         for item in modules:
             if item.GetBoundingBox().Intersects(area_bbox):
-                self.overlappings.append(item)
+                for pad in item.Pads():
+                    self.overlappings.append(pad)
 
         #TODO: change algorithm to 'If one of the candidate area's edges overlaps with target area declare candidate as overlapping' 
         for i in range(0, self.board.GetAreaCount()):
@@ -230,10 +231,8 @@ class ViaStitchingDialog(viastitching_gui):
         """
 
         for item in self.overlappings:
-            #TODO: disable module overlap check
-            if type(item) is pcbnew.MODULE:
-                #TODO: check by intersection?
-                if item.GetBoundingBox().Contains( via.GetPosition() ):
+            if type(item) is pcbnew.D_PAD:
+                if item.GetBoundingBox().Intersects( via.GetBoundingBox() ):
                     return True
             elif type(item) is pcbnew.VIA:
                 #Overlapping with vias work best if checking is performed by intersection
