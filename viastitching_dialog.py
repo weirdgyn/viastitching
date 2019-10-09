@@ -24,6 +24,7 @@ class ViaStitchingDialog(viastitching_gui):
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
         self.m_btnCancel.Bind(wx.EVT_BUTTON, self.onCloseWindow)
         self.m_btnOk.Bind(wx.EVT_BUTTON, self.onProcessAction)
+        self.m_rClear.Bind(wx.EVT_RADIOBUTTON, self.onClearCheck)
         self.board = pcbnew.GetBoard()
         self.ToUserUnit = None
         self.FromUserUnit = None
@@ -67,7 +68,13 @@ class ViaStitchingDialog(viastitching_gui):
     def GetOverlappingItems(self):
         area_bbox = self.area.GetBoundingBox()
         modules = self.board.GetModules()
+        tracks = self.board.GetTracks()
+
         self.overlappings = []
+
+        for item in tracks:
+            if (type(item) is pcbnew.VIA) and (item.GetBoundingBox().Intersects(area_bbox)):
+                self.overlappings.append(item)
 
         for item in modules:
             if item.GetBoundingBox().Intersects(area_bbox):
@@ -162,10 +169,13 @@ class ViaStitchingDialog(viastitching_gui):
         return True     
 
 
-    def CheckOverlap(self, point):
+    def CheckOverlap(self, via):
         for item in self.overlappings:
             if type(item) is pcbnew.MODULE:
-                if item.GetBoundingBox().Contains(point):
+                if item.GetBoundingBox().Contains( via.GetPosition() ):
+                    return True
+            elif type(item) is pcbnew.VIA:
+                if item.GetBoundingBox().Intersects( via.GetBoundingBox() ):
                     return True
 
         return False
@@ -201,8 +211,8 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetWidth(viasize)
                     via.SetTimeStamp(__timecode__)
                     #TODO: split clearance / overlap binding
-                    if (clearance == 0) or self.CheckClearance(p, self.area, clearance):
-                        if not self.CheckOverlap(p):
+                    if not self.CheckOverlap(via):
+                        if (clearance == 0) or self.CheckClearance(p, self.area, clearance):
                             self.board.Add(via)
                             #commit.Add(via)
                             viacount +=1
@@ -224,6 +234,13 @@ class ViaStitchingDialog(viastitching_gui):
             self.ClearArea()
 
         self.Destroy()
+
+    
+    def onClearCheck(self, event):
+        if self.m_rClear.GetValue():
+            self.m_chkClearOwn.Enable()
+        else:
+            self.m_chkClearOwn.Disable()
 
 
     def onCloseWindow(self, event):
