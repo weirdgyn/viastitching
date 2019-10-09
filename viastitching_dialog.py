@@ -18,7 +18,11 @@ __version__ = "0.1"
 __timecode__= 1972
 
 class ViaStitchingDialog(viastitching_gui):
+    '''Class that gathers all the Gui controls.'''
+
     def __init__(self, board):
+        '''Initialize the brand new instance.'''
+
         super(ViaStitchingDialog, self).__init__(None)
         self.SetTitle(_(u"ViaStitching v{0}").format(__version__))
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
@@ -27,6 +31,7 @@ class ViaStitchingDialog(viastitching_gui):
         self.m_rClear.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonCheck)
         self.m_rFill.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonCheck)
         self.board = pcbnew.GetBoard()
+        #Use the same unit set int PCBNEW
         self.ToUserUnit = None
         self.FromUserUnit = None
         units_mode = pcbnew.GetUserUnits()
@@ -49,6 +54,7 @@ class ViaStitchingDialog(viastitching_gui):
             wx.MessageBox(_(u"Not a valid frame"))
             self.Destroy()
 
+        #Get default Vias dimensions
         via_dim_list = self.board.GetViasDimensionsList()
         via_dims = via_dim_list.pop()
         self.m_txtViaSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Diameter))
@@ -58,15 +64,22 @@ class ViaStitchingDialog(viastitching_gui):
         self.net = None
         self.overlappings = None
 
+        #Check for selected area
         if not self.GetAreaConfig():
             wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
         else:
+            #Get overlapping items
             self.GetOverlappingItems()
+            #Populate nets checkbox
             self.PopulateNets() 
 
 
     def GetOverlappingItems(self):
+        """Collect overlapping items.
+            Every item found inside are bounding box is a candidate to be inspected for overlapping.
+        """
+
         area_bbox = self.area.GetBoundingBox()
         modules = self.board.GetModules()
         tracks = self.board.GetTracks()
@@ -83,6 +96,12 @@ class ViaStitchingDialog(viastitching_gui):
 
 
     def GetAreaConfig(self):
+        """Check selected area (if any) and verify if it is a valid container for vias.
+
+        Returns:
+            bool: Returns True if an area/zone is selected and match implant criteria, False otherwise.  
+        """
+
         for i in range(0, self.board.GetAreaCount()):
             area = self.board.GetArea(i)
             if area.IsSelected():
@@ -98,19 +117,26 @@ class ViaStitchingDialog(viastitching_gui):
 
 
     def PopulateNets(self):
+        '''Populate nets widget.'''
+
         nets = self.board.GetNetsByName()
 
+        #Tricky loop, the iterator should return two values, unluckly I'm not able to use the
+        #first value of the couple so I'm recycling it as netname.
         for netname, net in nets.items():
             netname = net.GetNetname()
             if (netname != None) and (netname != ""):
                 self.m_cbNet.Append(netname)
 
+        #Select the net used by area (if any)
         if self.net != None:
             index = self.m_cbNet.FindString(self.net)
             self.m_cbNet.Select(index)                        
 
 
     def ClearArea(self):
+        '''Clear selected area.'''
+
         undo = self.m_chkClearOwn.IsChecked()
         drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
         viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
@@ -121,6 +147,8 @@ class ViaStitchingDialog(viastitching_gui):
 
         for item in self.board.GetTracks():
             if type(item) is pcbnew.VIA:
+                #If the user selected the Undo action only signed vias are removed, 
+                #otherwise are removed vias matching values set in the dialog.
                 if undo and (item.GetTimeStamp() == __timecode__):
                     self.board.Remove(item)
                     viacount+=1
@@ -137,12 +165,26 @@ class ViaStitchingDialog(viastitching_gui):
 
 
     def CheckClearance(self, p1, area, clearance):
+        """Check if position specified by p1 comply with given clearance in area.
+
+        Parameters:
+            p1 (wxPoint): Position to test
+            area (pcbnew.ZONE_CONTAINER): Area
+            clearance (int): Clearance value
+
+        Returns:
+            bool: True if p1 position comply with clearance value False otherwise.
+
+        """
+
         corners = area.GetNumCorners()
         #Calculate minimum distance from corners
+        #TODO: remove?
         for i in range(0, corners):
             corner = area.GetCornerPosition(i)
             p2 = corner.getWxPoint()
             distance = sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2)
+
             if distance < clearance:
                 return False
 
@@ -171,11 +213,22 @@ class ViaStitchingDialog(viastitching_gui):
 
 
     def CheckOverlap(self, via):
+        """Check if via overlaps or interfere with other items on the board.
+
+        Parameters:
+            via (pcbnew.VIA): Via to be checked
+
+        Returns:
+            bool: True if via overlaps with an item, False otherwise.
+        """
+
         for item in self.overlappings:
             if type(item) is pcbnew.MODULE:
+                #TODO: check by intersection?
                 if item.GetBoundingBox().Contains( via.GetPosition() ):
                     return True
             elif type(item) is pcbnew.VIA:
+                #Overlapping with vias work best if checking is performed by intersection
                 if item.GetBoundingBox().Intersects( via.GetBoundingBox() ):
                     return True
 
@@ -183,6 +236,8 @@ class ViaStitchingDialog(viastitching_gui):
 
 
     def FillupArea(self):
+        '''Fills selected area with vias.'''        
+
         drillsize = self.FromUserUnit(float(self.m_txtViaDrillSize.GetValue()))
         viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
         step_x = self.FromUserUnit(float(self.m_txtHSpacing.GetValue()))
@@ -199,6 +254,7 @@ class ViaStitchingDialog(viastitching_gui):
         viacount = 0
         x = left
 
+        #Cycle trough area bounding box checking and implanting vias
         while x <= right:
             y = top
             while y <= bottom:
@@ -211,7 +267,6 @@ class ViaStitchingDialog(viastitching_gui):
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
                     via.SetTimeStamp(__timecode__)
-                    #TODO: split clearance / overlap binding
                     if not self.CheckOverlap(via):
                         if (clearance == 0) or self.CheckClearance(p, self.area, clearance):
                             self.board.Add(via)
@@ -229,6 +284,8 @@ class ViaStitchingDialog(viastitching_gui):
 
 
     def onProcessAction(self, event):
+        '''Manage main button (Ok) click event.'''
+
         if(self.m_rFill.GetValue()):
             self.FillupArea()
         else:
@@ -238,6 +295,8 @@ class ViaStitchingDialog(viastitching_gui):
 
     
     def onRadioButtonCheck(self, event):
+        '''Manage radio button state change event.'''
+
         if self.m_rClear.GetValue():
             self.m_chkClearOwn.Enable()
         else:
@@ -245,10 +304,14 @@ class ViaStitchingDialog(viastitching_gui):
 
 
     def onCloseWindow(self, event):
+        '''Manage Close button click event.'''
+
         self.Destroy()
 
 
 def InitViaStitchingDialog(board):
+    '''Initalize dialog.'''
+
     dlg = ViaStitchingDialog(board)
     dlg.Show(True)
     return dlg
