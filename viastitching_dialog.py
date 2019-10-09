@@ -94,6 +94,13 @@ class ViaStitchingDialog(viastitching_gui):
             if item.GetBoundingBox().Intersects(area_bbox):
                 self.overlappings.append(item)
 
+        #TODO: change algorithm to 'If one of the candidate area's edges overlaps with target area declare candidate as overlapping' 
+        for i in range(0, self.board.GetAreaCount()):
+            item = self.board.GetArea(i)
+            if item.GetBoundingBox().Intersects(area_bbox):
+                if item.GetNetname() != self.net:
+                    self.overlappings.append(item)
+
 
     def GetAreaConfig(self):
         """Check selected area (if any) and verify if it is a valid container for vias.
@@ -223,6 +230,7 @@ class ViaStitchingDialog(viastitching_gui):
         """
 
         for item in self.overlappings:
+            #TODO: disable module overlap check
             if type(item) is pcbnew.MODULE:
                 #TODO: check by intersection?
                 if item.GetBoundingBox().Contains( via.GetPosition() ):
@@ -231,7 +239,10 @@ class ViaStitchingDialog(viastitching_gui):
                 #Overlapping with vias work best if checking is performed by intersection
                 if item.GetBoundingBox().Intersects( via.GetBoundingBox() ):
                     return True
-
+            elif type(item) is pcbnew.ZONE_CONTAINER:
+                if item.HitTestInsideZone( via.GetPosition() ):
+                    return True
+        
         return False
 
 
@@ -255,19 +266,21 @@ class ViaStitchingDialog(viastitching_gui):
         x = left
 
         #Cycle trough area bounding box checking and implanting vias
+        layer = self.area.GetLayer()
         while x <= right:
             y = top
             while y <= bottom:
-                if self.area.HitTestInsideZone(pcbnew.wxPoint(x,y)):
+                p = pcbnew.wxPoint(x,y)
+                if self.area.HitTestInsideZone(p):
                     via = pcbnew.VIA(self.board)
-                    p = pcbnew.wxPoint(x,y)
                     via.SetPosition(p)
-                    via.SetLayer(self.area.GetLayer())
+                    via.SetLayer(layer)
                     via.SetNetCode(netcode)
                     via.SetDrill(drillsize)
                     via.SetWidth(viasize)
                     via.SetTimeStamp(__timecode__)
                     if not self.CheckOverlap(via):
+                        #Check clearance only if clearance value differs from 0 (disabled)
                         if (clearance == 0) or self.CheckClearance(p, self.area, clearance):
                             self.board.Add(via)
                             #commit.Add(via)
