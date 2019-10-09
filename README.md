@@ -14,18 +14,18 @@ The workflow is pretty simple: select the area you want to fill, click on ```Too
 
 ![AddNet dialog](pictures/viastitching_dialog.PNG?raw=true "ViaStitching dialog")
 
-The vias you're going to create needs to be assigned a net usually this's the net of the selected area for this reason the plugin pre-select this net for you; of course you're free to select another net if you like.
-The plugin dialog let you also specify the parameters for the via creation (via size and drill size), the values you find in the textboxes here are taken from the configuration of the board, you can change them but beware to use values that will not conflict with DRC rules. The other parameters you can customize are: vertical and horizontal spacing between each vias and clearance (edge clearance insert 0 will disable check).
-When you're satisfied with your settings you just need to press __Ok__ button and the fillup will begin.
+The vias you're going to create needs to be assigned a net usually this's the net of the target area for this reason the plugin pre-select this net for you; of course you're free to select another net if you like.
+The plugin dialog let you also specify the parameters for the via creation (via size and drill size), such values are taken from board configuration, you can change them but beware to use values that will not conflict with DRC rules; you can customize also: vertical and horizontal spacing between vias and edge clearance (insert 0 will disable check).
+When you're satisfied with your settings you have just to press __Ok__ and the fillup will begin (I'm assuming __Fill__ action is checked).
 If everything goes fine you'll get something like this:
 
 ![viastitching result](pictures/viastitching_result.PNG?raw=true "ViaStitching result")
 
-After stitching you area is always a good practice to perform a DRC.
+After stitching is always a good practice to perform a DRC.
 
-As you can see some vias overlap with some other PCB elements (tracks, ~~pads, vias~~ etc) at this development stage the removal of conflicting vias is up to the user with future releases the implant process will prevent vias to overlap with other elements.
+As you can see some implanted vias may still overlap with some other PCB elements (tracks, ~~zone, pads, vias~~ etc) at this development stage the removal of conflicting vias is up to the user with future releases the implant process will prevent vias to overlap with other elements.
 
-The default action of the dialog is the __Fill__ action (as you can notice from the radio-button on the bottom). __Clear__ action works the in the opposite way: it removes from the selected area any vias matching settings (i.e. same net, same size, same drill specified in dialog fields). Beware: __Clear__ will not distinguish vias implanted by __Fill__ from user ones until you check the specific checkbox, and will remove all of them if they match the values entered. If you click on __clear only plugin placed vias__ checbox the plugin will inspect vias for a specific signature and remove only those matching it: this can be used as an __Undo__ feature.
+The default action of the dialog is the __Fill__ action (as you can notice from the radio-button on the bottom) but this plugin is not limited to this function only. __Clear__ action works the in the opposite way: it removes from selected area any vias matching settings (i.e. same net, same size, same drill specified in dialog fields). Beware: __Clear__ will not distinguish vias implanted by __Fill__ from user ones until you check the specific checkbox, and will remove all of them if they match the values entered. If you check __clear only plugin placed vias__ widget the plugin will inspect vias for a specific signature and remove only those matching it: this can be used as an __Undo__ feature.
 
 ## TODO
 
@@ -33,7 +33,7 @@ Some features still to code:
 - ~~Match user units (mm/inches).~~
 - ~~Add clear area function.~~
 - Draw a better UI (if anyone is willing to contribute please read the following section).
-- Collision between new vias and underlying objects: zones, tracks, ~~pads~~, ~~modules~~, ~~vias~~.
+- Collision between new vias and underlying objects: tracks, ~~zones~~, ~~pads~~, ~~modules~~, ~~vias~~.
 - Different fillup patterns/modes (bounding box, centered spiral).
 - ~~Avoid placing vias near area edges (define clearance).~~
 - History management (board commit).
@@ -57,7 +57,7 @@ This modification allows the code to work with __Python 2__ (that's the standard
 
 ## kicad-action-scripts - ViaStitching plugin similarity
 
-Yes my plugin is pretty similar to this plugin but I'm using a radically different approach in coding. At the time I wrote this plugin unluckly __jsreynaud__ plugin wasn't working but I bet he will fix it.
+Yes my plugin is pretty similar to this plugin but I'm using a radically different approach in coding. At the time I wrote the first release of my plugin unluckly __jsreynaud__ plugin wasn't working but I bet he will fix it.
 
 ## References
 
