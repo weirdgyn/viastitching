@@ -30,15 +30,20 @@ The default action of the dialog is the __Fill__ action (as you can notice from 
 ## TODO
 
 Some features still to code:
-- ~~Match user units (mm/inches).~~
-- ~~Add clear area function.~~
-- Draw a better UI (if anyone is willing to contribute please read the following section).
-- Collision between new vias and underlying objects: tracks, ~~zones~~, ~~pads~~, ~~modules~~, ~~vias~~.
-- Different fillup patterns/modes (bounding box, centered spiral).
-- ~~Avoid placing vias near area edges (define clearance).~~
-- History management (board commit).
-- Localization.
-- Any request?
+- [x] Match user units (mm/inches).
+- [x] Add clear area function.
+- [ ] Draw a better UI (if anyone is willing to contribute please read the following section).
+- [ ] Collision between new vias and underlying objects: 
+ - [] tracks, 
+ - [x] zones, 
+ - [x] pads,
+ - [x] modules,
+ - [x] vias.
+- [ ] Different fillup patterns/modes (bounding box, centered spiral).
+- [x] Avoid placing vias near area edges (define clearance).
+- [ ] History management (board commit).
+- [ ] Localization.
+- [ ] Any request?
 
 ## Coding notes
 
