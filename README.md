@@ -34,7 +34,7 @@ Some features still to code:
 - [x] Add clear area function.
 - [ ] Draw a better UI (if anyone is willing to contribute please read the following section).
 - [ ] Collision between new vias and underlying objects: 
- - [] tracks, 
+ - [ ] tracks, 
  - [x] zones, 
  - [x] pads,
  - [x] modules,
