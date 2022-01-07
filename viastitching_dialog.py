@@ -10,11 +10,11 @@ import pcbnew
 import gettext
 import math
 
-from viastitching_gui import viastitching_gui
+from .viastitching_gui import viastitching_gui
 from math import sqrt
 
 _ = gettext.gettext
-__version__ = "0.1"
+__version__ = "0.2"
 __timecode__= 1972
 
 class ViaStitchingDialog(viastitching_gui):
@@ -81,13 +81,18 @@ class ViaStitchingDialog(viastitching_gui):
         """
 
         area_bbox = self.area.GetBoundingBox()
-        modules = self.board.GetModules()
+
+        if hasattr(self.board, 'GetModules'):
+            modules = self.board.GetModules()
+        else:
+            modules = self.board.GetFootprints()
+
         tracks = self.board.GetTracks()
 
         self.overlappings = []
 
         for item in tracks:
-            if (type(item) is pcbnew.VIA) and (item.GetBoundingBox().Intersects(area_bbox)):
+            if (type(item) is pcbnew.PCB_VIA) and (item.GetBoundingBox().Intersects(area_bbox)):
                 self.overlappings.append(item)
 
         for item in modules:
@@ -154,7 +159,7 @@ class ViaStitchingDialog(viastitching_gui):
         viacount = 0
 
         for item in self.board.GetTracks():
-            if type(item) is pcbnew.VIA:
+            if type(item) is pcbnew.PCB_VIA:
                 #If the user selected the Undo action only signed vias are removed, 
                 #otherwise are removed vias matching values set in the dialog.
                 if undo and (item.GetTimeStamp() == __timecode__):
@@ -234,7 +239,7 @@ class ViaStitchingDialog(viastitching_gui):
             if type(item) is pcbnew.D_PAD:
                 if item.GetBoundingBox().Intersects( via.GetBoundingBox() ):
                     return True
-            elif type(item) is pcbnew.VIA:
+            elif type(item) is pcbnew.PCB_VIA:
                 #Overlapping with vias work best if checking is performed by intersection
                 if item.GetBoundingBox().Intersects( via.GetBoundingBox() ):
                     return True

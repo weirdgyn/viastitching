@@ -11,7 +11,7 @@ import pcbnew
 import gettext
 
 from pcbnew import ActionPlugin, GetBoard
-from viastitching_dialog import InitViaStitchingDialog
+from .viastitching_dialog import InitViaStitchingDialog
 
 _ = gettext.gettext
 
