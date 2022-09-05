@@ -16,6 +16,7 @@ from math import sqrt
 _ = gettext.gettext
 __version__ = "0.2"
 __timecode__= 1972
+__viagroupname__ = "VIA_STITCHING_GROUP"
 
 class ViaStitchingDialog(viastitching_gui):
     '''Class that gathers all the Gui controls.'''
@@ -31,6 +32,18 @@ class ViaStitchingDialog(viastitching_gui):
         self.m_rClear.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonCheck)
         self.m_rFill.Bind(wx.EVT_RADIOBUTTON, self.onRadioButtonCheck)
         self.board = pcbnew.GetBoard()
+        self.pcb_group = None
+
+        #Search trough groups 
+        for group in self.board.Groups():
+            if group.GetName() == __viagroupname__:
+                self.pcb_group = group
+
+        if self.pcb_group is None:
+            self.pcb_group = pcbnew.PCB_GROUP(None)
+            self.pcb_group.SetName(__viagroupname__)
+            self.board.Add(self.pcb_group)
+
         #Use the same unit set int PCBNEW
         self.ToUserUnit = None
         self.FromUserUnit = None
@@ -56,7 +69,13 @@ class ViaStitchingDialog(viastitching_gui):
 
         #Get default Vias dimensions
         via_dim_list = self.board.GetViasDimensionsList()
-        via_dims = via_dim_list.pop()
+
+        if via_dim_list:
+            via_dims = via_dim_list.pop()
+        else:
+            wx.MessageBox(_(u"Please set via drill/size in board"))
+            self.Destroy()
+
         self.m_txtViaSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Diameter))
         self.m_txtViaDrillSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Drill))
         via_dim_list.push_back(via_dims)
@@ -160,12 +179,16 @@ class ViaStitchingDialog(viastitching_gui):
 
         for item in self.board.GetTracks():
             if type(item) is pcbnew.PCB_VIA:
-                #If the user selected the Undo action only signed vias are removed, 
+                #If the user selected the Undo action only signed/grouped vias are removed, 
                 #otherwise are removed vias matching values set in the dialog.
-                if undo and (item.GetTimeStamp() == __timecode__):
-                    self.board.Remove(item)
-                    viacount+=1
-                    #commit.Remove(item)
+                
+                #if undo and (item.GetTimeStamp() == __timecode__):
+                if undo and (self.pcb_group is not None):
+                    group = item.GetParentGroup()
+                    if(group is not None and group.GetName() == __viagroupname__):
+                        self.board.Remove(item)
+                        viacount+=1
+                        #commit.Remove(item)
                 elif (not undo) and self.area.HitTestFilledArea(self.area.GetLayer(), item.GetPosition(), 0) and (item.GetDrillValue() == drillsize) and (item.GetWidth() == viasize) and (item.GetNetname() == netname):
                     self.board.Remove(item)
                     viacount+=1
@@ -288,6 +311,7 @@ class ViaStitchingDialog(viastitching_gui):
                         if (clearance == 0) or self.CheckClearance(p, self.area, clearance):
                             self.board.Add(via)
                             #commit.Add(via)
+                            self.pcb_group.AddItem(via)
                             viacount +=1
                 y += step_y
             x += step_x

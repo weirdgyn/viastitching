@@ -2,3 +2,5 @@ __init__.pyc
 viastitching_plugin.pyc
 viastitching_dialog.pyc
 viastitching_gui.pyc
+*.pyc
+*.pyc
