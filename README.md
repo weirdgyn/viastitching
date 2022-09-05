@@ -1,6 +1,6 @@
 # ViaStitching
 
-Via Stitching action-plugin
+Via Stitching action-plugin for use with KiCAD 6.0+.
 
 Fill a selected copper area with a pattern of vias.
 
