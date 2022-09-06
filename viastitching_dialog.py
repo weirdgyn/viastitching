@@ -96,7 +96,7 @@ class ViaStitchingDialog(viastitching_gui):
 
     def GetOverlappingItems(self):
         """Collect overlapping items.
-            Every item found inside are bounding box is a candidate to be inspected for overlapping.
+            Every item found inside bounding box is a candidate to be inspected for overlapping.
         """
 
         area_bbox = self.area.GetBoundingBox()
