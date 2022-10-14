@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Oct 26 2018)
+## Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -9,7 +9,6 @@
 
 import wx
 import wx.xrc
-import sys
 
 import gettext
 _ = gettext.gettext
@@ -23,10 +22,7 @@ class viastitching_gui ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = _(u"Via Stitching"), pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_DIALOG_STYLE )
 
-		if sys.version_info[0] == 2:
-			self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
-		else:
-			self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
 		bMainSizer = wx.BoxSizer( wx.VERTICAL )
 
@@ -101,18 +97,12 @@ class viastitching_gui ( wx.Dialog ):
 
 		bHSizer4 = wx.BoxSizer( wx.HORIZONTAL )
 
-		self.m_rFill = wx.RadioButton( self, wx.ID_ANY, _(u"Fill"), wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_rFill.SetValue( True )
-		bHSizer4.Add( self.m_rFill, 0, wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-
-		self.m_rClear = wx.RadioButton( self, wx.ID_ANY, _(u"Clear"), wx.DefaultPosition, wx.DefaultSize, 0 )
-		bHSizer4.Add( self.m_rClear, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-
 		self.m_chkClearOwn = wx.CheckBox( self, wx.ID_ANY, _(u"Clear only plugin placed vias"), wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_chkClearOwn.SetValue(True)
-		#self.m_chkClearOwn.Enable( False )
-
 		bHSizer4.Add( self.m_chkClearOwn, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.m_chkRandomize = wx.CheckBox( self, wx.ID_ANY, _(u"Randomize"), wx.DefaultPosition, wx.DefaultSize, 0 )
+		bHSizer4.Add( self.m_chkRandomize, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
 		bMainSizer.Add( bHSizer4, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
@@ -126,6 +116,9 @@ class viastitching_gui ( wx.Dialog ):
 
 		self.m_btnCancel = wx.Button( self, wx.ID_ANY, _(u"&Cancel"), wx.DefaultPosition, wx.DefaultSize, 0 )
 		bHSizer5.Add( self.m_btnCancel, 0, wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.m_btnClear = wx.Button( self, wx.ID_ANY, _(u"C&lear"), wx.DefaultPosition, wx.DefaultSize, 0 )
+		bHSizer5.Add( self.m_btnClear, 0, wx.ALL, 5 )
 
 
 		bMainSizer.Add( bHSizer5, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
