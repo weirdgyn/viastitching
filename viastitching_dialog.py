@@ -108,8 +108,6 @@ class ViaStitchingDialog(viastitching_gui):
             wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
         else:
-            # Get overlapping items
-            self.GetOverlappingItems()
             # Populate nets checkbox
             self.PopulateNets()
 
@@ -129,6 +127,11 @@ class ViaStitchingDialog(viastitching_gui):
 
         self.overlappings = []
 
+        for zone in self.board.Zones():
+            if zone.GetZoneName() != self.area.GetZoneName():
+                if (zone.GetBoundingBox().Intersects(area_bbox)):
+                    self.overlappings.append(zone)
+
         for item in tracks:
             if (type(item) is pcbnew.PCB_VIA) and (item.GetBoundingBox().Intersects(area_bbox)):
                 self.overlappings.append(item)
@@ -139,6 +142,8 @@ class ViaStitchingDialog(viastitching_gui):
             if item.GetBoundingBox().Intersects(area_bbox):
                 for pad in item.Pads():
                     self.overlappings.append(pad)
+                for zone in item.Zones():
+                    self.overlappings.append(zone)
 
         # TODO: change algorithm to 'If one of the candidate area's edges overlaps with target area declare candidate as overlapping'
         for i in range(0, self.board.GetAreaCount()):
@@ -302,7 +307,7 @@ class ViaStitchingDialog(viastitching_gui):
                 # Overlapping with vias work best if checking is performed by intersection
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
-            elif type(item) is pcbnew.ZONE:
+            elif type(item) in [pcbnew.ZONE, pcbnew.FP_ZONE]:
                 if item.HitTestFilledArea(self.area.GetLayer(), via.GetPosition(), 0):
                     return True
             elif type(item) is pcbnew.PCB_TRACK:
@@ -387,6 +392,9 @@ class ViaStitchingDialog(viastitching_gui):
 
         with open(self.default_file_path, "w+") as def_file:
             def_file.write(json.dumps(config))
+
+        # Get overlapping items
+        self.GetOverlappingItems()
 
         # Search trough groups
         for group in self.board.Groups():
