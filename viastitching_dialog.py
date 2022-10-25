@@ -12,8 +12,13 @@ import gettext
 import math
 
 from .viastitching_gui import viastitching_gui
-from math import sqrt
-import numpy as np
+
+numpy_available = False
+try:
+    import numpy as np
+    numpy_available = True
+except Exception:
+    from math import sqrt, pow
 import json
 import pathlib
 
@@ -108,8 +113,6 @@ class ViaStitchingDialog(viastitching_gui):
             wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
         else:
-            # Get overlapping items
-            self.GetOverlappingItems()
             # Populate nets checkbox
             self.PopulateNets()
 
@@ -129,6 +132,11 @@ class ViaStitchingDialog(viastitching_gui):
 
         self.overlappings = []
 
+        for zone in self.board.Zones():
+            if zone.GetZoneName() != self.area.GetZoneName():
+                if (zone.GetBoundingBox().Intersects(area_bbox)):
+                    self.overlappings.append(zone)
+
         for item in tracks:
             if (type(item) is pcbnew.PCB_VIA) and (item.GetBoundingBox().Intersects(area_bbox)):
                 self.overlappings.append(item)
@@ -139,6 +147,8 @@ class ViaStitchingDialog(viastitching_gui):
             if item.GetBoundingBox().Intersects(area_bbox):
                 for pad in item.Pads():
                     self.overlappings.append(pad)
+                for zone in item.Zones():
+                    self.overlappings.append(zone)
 
         # TODO: change algorithm to 'If one of the candidate area's edges overlaps with target area declare candidate as overlapping'
         for i in range(0, self.board.GetAreaCount()):
@@ -239,19 +249,16 @@ class ViaStitchingDialog(viastitching_gui):
         for i in range(corners):
             corner = area.GetCornerPosition(i)
             p2 = corner.getWxPoint()
-            the_distance = np.linalg.norm(p2 - p1)  # sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
+            the_distance = norm(p2 - p1)  # sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
 
             if the_distance < clearance:
                 return False
 
-        point = np.array([float(p1.x), float(p1.y)])  # Calculate minimum distance from edges
         for i in range(corners):
             corner1 = area.GetCornerPosition(i)
             corner2 = area.GetCornerPosition((i + 1) % corners)
             pc1 = corner1.getWxPoint()
             pc2 = corner2.getWxPoint()
-            # start = np.array([float(pc1.x), float(pc1.y), 0.])
-            # end = np.array([float(pc2.x), float(pc2.y), 0.])
             the_distance, _ = pnt2line(p1, pc1, pc2)
 
             if the_distance <= clearance:
@@ -259,8 +266,6 @@ class ViaStitchingDialog(viastitching_gui):
 
         for edge in self.board_edges:
             if edge.ShowShape() == 'Line':
-                # start = np.array([float(edge.GetStart().x), float(edge.GetStart().y), 0.])
-                # end = np.array([float(edge.GetEnd().x), float(edge.GetEnd().y), 0.])
                 the_distance, _ = pnt2line(p1, edge.GetStart(), edge.GetEnd())
                 if the_distance <= clearance + via.GetWidth() / 2:
                     return False
@@ -269,15 +274,15 @@ class ViaStitchingDialog(viastitching_gui):
                 center = edge.GetPosition()
                 start = edge.GetStart()
                 end = edge.GetEnd()
-                radius = np.linalg.norm(center - end)  # ((center - end).x ** 2 + (center - end).y ** 2)
-                dist = np.linalg.norm(p1 - center)  # sqrt((p1 - center).x ** 2 + (p1 - center).y ** 2)
+                radius = norm(center - end)  # ((center - end).x ** 2 + (center - end).y ** 2)
+                dist = norm(p1 - center)  # sqrt((p1 - center).x ** 2 + (p1 - center).y ** 2)
                 if radius - (self.clearance + via.GetWidth() / 2) < dist < radius + (
                         self.clearance + via.GetWidth() / 2):
                     # via is in range need to check the angle
                     start_angle = math.atan2((start - center).y, (start - center).x)
                     end_angle = math.atan2((end - center).y, (end - center).x)
                     if end_angle < start_angle:
-                        end_angle += 2*math.pi
+                        end_angle += 2 * math.pi
                     point_angle = math.atan2((p1 - center).y, (p1 - center).x)
                     if start_angle <= point_angle <= end_angle:
                         return False
@@ -302,7 +307,7 @@ class ViaStitchingDialog(viastitching_gui):
                 # Overlapping with vias work best if checking is performed by intersection
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
-            elif type(item) is pcbnew.ZONE:
+            elif type(item) in [pcbnew.ZONE, pcbnew.FP_ZONE]:
                 if item.HitTestFilledArea(self.area.GetLayer(), via.GetPosition(), 0):
                     return True
             elif type(item) is pcbnew.PCB_TRACK:
@@ -388,6 +393,9 @@ class ViaStitchingDialog(viastitching_gui):
         with open(self.default_file_path, "w+") as def_file:
             def_file.write(json.dumps(config))
 
+        # Get overlapping items
+        self.GetOverlappingItems()
+
         # Search trough groups
         for group in self.board.Groups():
             if group.GetName() == __viagroupname__:
@@ -420,6 +428,38 @@ def InitViaStitchingDialog(board):
     dlg.Show(True)
     return dlg
 
+
+class aVector():
+
+    def __init__(self, point: [pcbnew.wxPoint, list]):
+        if isinstance(point, pcbnew.wxPoint):
+            self.x = float(point.x)
+            self.y = float(point.y)
+        elif isinstance(point, list):
+            self.x = point[0]
+            self.y = point[1]
+
+    def __sub__(self, other: pcbnew.wxPoint):
+        return aVector([self.x - float(other.x), self.y - float(other.y)])
+
+    def __mul__(self, other):
+        return aVector([self.x * float(other), self.y * float(other)])
+
+    def __add__(self, other):
+        return aVector([self.x + float(other.x), self.y + float(other.y)])
+
+    def __truediv__(self, other):
+        return aVector([self.x / other, self.y / other])
+
+    @staticmethod
+    def norm(vector):
+        return sqrt(pow(vector.x, 2) + pow(vector.y, 2))
+
+    @staticmethod
+    def dot(vector1, vector2):
+        return vector1.x * vector2.x + vector1.y * vector2.y
+
+
 # Given a line with coordinates 'start' and 'end' and the
 # coordinates of a point 'point' the proc returns the shortest
 # distance from pnt to the line and the coordinates of the
@@ -439,20 +479,29 @@ def InitViaStitchingDialog(board):
 # Malcolm Kesson 16 Dec 2012
 
 def pnt2line(point: pcbnew.wxPoint, start: pcbnew.wxPoint, end: pcbnew.wxPoint):
-    pnt = np.array([point.x, point.y])
-    strt = np.array([start.x, start.y])
-    nd = np.array([end.x, end.y])
+    pnt = vector([point.x, point.y])
+    strt = vector([start.x, start.y])
+    nd = vector([end.x, end.y])
     line_vec = nd - strt
     pnt_vec = pnt - strt
-    line_len = np.linalg.norm(line_vec)
-    line_unitvec = line_vec/line_len
-    pnt_vec_scaled = pnt_vec/line_len
-    t = np.dot(line_unitvec, pnt_vec_scaled)
+    line_len = norm(line_vec)
+    line_unitvec = line_vec / line_len
+    pnt_vec_scaled = pnt_vec / line_len
+    t = dot(line_unitvec, pnt_vec_scaled)
     if t < 0.0:
         t = 0.0
     elif t > 1.0:
         t = 1.0
     nearest = line_vec * t
-    dist = np.linalg.norm(pnt_vec - nearest)
+    dist = norm(pnt_vec - nearest)
     nearest = nearest + strt
     return dist, nearest
+
+
+norm = aVector.norm
+vector = aVector
+dot = aVector.dot
+if numpy_available:
+    norm = np.linalg.norm
+    vector = np.array
+    dot = np.dot
