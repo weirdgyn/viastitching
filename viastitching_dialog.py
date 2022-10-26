@@ -410,7 +410,14 @@ class ViaStitchingDialog(viastitching_gui):
         zone_name = self.area.GetZoneName()
         wx.LogMessage(f"Zone name: {zone_name}")
         if zone_name == "":
-            zone_name = f"zone{random.randint(0,100)}"
+            for i in range(1000):
+                candidate_name = f"stitch_zone_{i}"
+                if candidate_name not in self.config.keys():
+                    zone_name = candidate_name
+                    break
+            else:
+                wx.LogError("Tried 1000 different names and all were taken. Please give a name to the zone.")
+                self.Destroy()
             self.area.SetZoneName(zone_name)
 
         config = {
