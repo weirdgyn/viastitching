@@ -21,7 +21,6 @@ try:
 except Exception:
     from math import sqrt, pow
 import json
-import pathlib
 
 _ = gettext.gettext
 __version__ = "0.2"
@@ -48,7 +47,6 @@ class ViaStitchingDialog(viastitching_gui):
         self.pcb_group = None
         self.clearance = 0
         self.board_edges = []
-        self.default_file_path = f"{pathlib.Path(__file__).parent.resolve()}/{default_filename}"
         self.config_layer = 0
         self.config_textbox = None
         self.area = None
@@ -68,7 +66,6 @@ class ViaStitchingDialog(viastitching_gui):
                         self.config = new_config
                 except JSONDecodeError:
                     pass
-        wx.LogMessage(f"Got config: {self.config}")
 
 
         # Use the same unit set int PCBNEW
@@ -102,7 +99,6 @@ class ViaStitchingDialog(viastitching_gui):
             # Populate nets checkbox
             self.PopulateNets()
 
-        wx.LogMessage(f"Area: {self.area}")
         defaults = self.config.get(self.area.GetZoneName(), None)
         self.viagroupname = __viagroupname_base__ + self.area.GetZoneName()
 
@@ -110,8 +106,6 @@ class ViaStitchingDialog(viastitching_gui):
         for group in self.board.Groups():
             if group.GetName() == self.viagroupname:
                 self.pcb_group = group
-
-        wx.LogMessage(f"Got defaults: {defaults}")
 
         if defaults is not None:
             self.m_txtVSpacing.SetValue(defaults.get("VSpacing", "3"))
@@ -132,10 +126,6 @@ class ViaStitchingDialog(viastitching_gui):
         self.m_txtViaDrillSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Drill))
         via_dim_list.push_back(via_dims)
         self.overlappings = None
-
-        wx.LogMessage("Finished init...")
-
-
 
     def GetOverlappingItems(self):
         """Collect overlapping items.
@@ -194,7 +184,6 @@ class ViaStitchingDialog(viastitching_gui):
                     return False
                 self.area = area
                 self.net = area.GetNetname()
-                wx.LogMessage(f"Area: {self.area}!")
                 return True
 
         return False
@@ -406,9 +395,7 @@ class ViaStitchingDialog(viastitching_gui):
 
     def onProcessAction(self, event):
         """Manage main button (Ok) click event."""
-        wx.LogMessage(f"Starting processAction... {self.area}")
         zone_name = self.area.GetZoneName()
-        wx.LogMessage(f"Zone name: {zone_name}")
         if zone_name == "":
             for i in range(1000):
                 candidate_name = f"stitch_zone_{i}"
@@ -435,6 +422,7 @@ class ViaStitchingDialog(viastitching_gui):
             title_block.SetLayer(self.config_layer)
             title_block.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_LEFT)
             title_block.SetVertJustify(pcbnew.GR_TEXT_VJUSTIFY_TOP)
+            title_block.SetVisible(False)
             self.config_textbox = title_block
             self.board.Add(title_block)
         self.config[zone_name] = config
