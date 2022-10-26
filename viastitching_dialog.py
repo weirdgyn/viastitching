@@ -5,6 +5,7 @@
 # (c) Michele Santucci 2019
 #
 import random
+from json import JSONDecodeError
 
 import wx
 import pcbnew
@@ -20,13 +21,12 @@ try:
 except Exception:
     from math import sqrt, pow
 import json
-import pathlib
 
 _ = gettext.gettext
 __version__ = "0.2"
 __timecode__ = 1972
-__viagroupname__ = "VIA_STITCHING_GROUP"
-default_filename = "defaults.json"
+__viagroupname_base__ = "VIA_STITCHING_GROUP"
+__plugin_config_layer_name__ = "plugins.config"
 
 
 class ViaStitchingDialog(viastitching_gui):
@@ -36,6 +36,7 @@ class ViaStitchingDialog(viastitching_gui):
         """Initialize the brand new instance."""
 
         super(ViaStitchingDialog, self).__init__(None)
+        self.viagroupname = None
         self.SetTitle(_(u"ViaStitching v{0}").format(__version__))
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
         self.m_btnCancel.Bind(wx.EVT_BUTTON, self.onCloseWindow)
@@ -46,16 +47,26 @@ class ViaStitchingDialog(viastitching_gui):
         self.pcb_group = None
         self.clearance = 0
         self.board_edges = []
-        self.default_file_path = f"{pathlib.Path(__file__).parent.resolve()}/{default_filename}"
+        self.config_layer = 0
+        self.config_textbox = None
+        self.area = None
+        self.net = None
+        self.config = {}
+
+        self.getConfigLayer()
 
         for d in pcbnew.GetBoard().GetDrawings():
             if d.GetLayerName() == 'Edge.Cuts':
                 self.board_edges.append(d)
+            if d.GetLayerName() == __plugin_config_layer_name__:
+                try:
+                    new_config = json.loads(d.GetText())
+                    if "ViaStitching" in new_config.keys():
+                        self.config_textbox = d
+                        self.config = new_config
+                except JSONDecodeError:
+                    pass
 
-        # Search trough groups
-        for group in self.board.Groups():
-            if group.GetName() == __viagroupname__:
-                self.pcb_group = group
 
         # Use the same unit set int PCBNEW
         self.ToUserUnit = None
@@ -80,17 +91,27 @@ class ViaStitchingDialog(viastitching_gui):
             wx.MessageBox(_(u"Not a valid frame"))
             self.Destroy()
 
-        try:
-            defaults = {}
-            with open(self.default_file_path, "r") as def_file:
-                defaults = json.load(def_file)
-        except Exception:
-            pass
+            # Check for selected area
+        if not self.GetAreaConfig():
+            wx.MessageBox(_(u"Please select a valid area"))
+            self.Destroy()
+        else:
+            # Populate nets checkbox
+            self.PopulateNets()
 
-        self.m_txtVSpacing.SetValue(defaults.get("VSpacing", "3"))
-        self.m_txtHSpacing.SetValue(defaults.get("HSpacing", "3"))
-        self.m_txtClearance.SetValue(defaults.get("Clearance", "0"))
-        self.m_chkRandomize.SetValue(defaults.get("Randomize", False))
+        defaults = self.config.get(self.area.GetZoneName(), None)
+        self.viagroupname = __viagroupname_base__ + self.area.GetZoneName()
+
+        # Search trough groups
+        for group in self.board.Groups():
+            if group.GetName() == self.viagroupname:
+                self.pcb_group = group
+
+        if defaults is not None:
+            self.m_txtVSpacing.SetValue(defaults.get("VSpacing", "3"))
+            self.m_txtHSpacing.SetValue(defaults.get("HSpacing", "3"))
+            self.m_txtClearance.SetValue(defaults.get("Clearance", "0"))
+            self.m_chkRandomize.SetValue(defaults.get("Randomize", False))
 
         # Get default Vias dimensions
         via_dim_list = self.board.GetViasDimensionsList()
@@ -104,17 +125,7 @@ class ViaStitchingDialog(viastitching_gui):
         self.m_txtViaSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Diameter))
         self.m_txtViaDrillSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Drill))
         via_dim_list.push_back(via_dims)
-        self.area = None
-        self.net = None
         self.overlappings = None
-
-        # Check for selected area
-        if not self.GetAreaConfig():
-            wx.MessageBox(_(u"Please select a valid area"))
-            self.Destroy()
-        else:
-            # Populate nets checkbox
-            self.PopulateNets()
 
     def GetOverlappingItems(self):
         """Collect overlapping items.
@@ -213,7 +224,7 @@ class ViaStitchingDialog(viastitching_gui):
                 # if undo and (item.GetTimeStamp() == __timecode__):
                 if undo and (self.pcb_group is not None):
                     group = item.GetParentGroup()
-                    if (group is not None and group.GetName() == __viagroupname__):
+                    if (group is not None and group.GetName() == self.viagroupname):
                         self.board.Remove(item)
                         viacount += 1
                         # commit.Remove(item)
@@ -384,26 +395,51 @@ class ViaStitchingDialog(viastitching_gui):
 
     def onProcessAction(self, event):
         """Manage main button (Ok) click event."""
+        zone_name = self.area.GetZoneName()
+        if zone_name == "":
+            for i in range(1000):
+                candidate_name = f"stitch_zone_{i}"
+                if candidate_name not in self.config.keys():
+                    zone_name = candidate_name
+                    break
+            else:
+                wx.LogError("Tried 1000 different names and all were taken. Please give a name to the zone.")
+                self.Destroy()
+            self.area.SetZoneName(zone_name)
 
-        config = {"HSpacing": self.m_txtHSpacing.GetValue(),
-                  "VSpacing": self.m_txtVSpacing.GetValue(),
-                  "Clearance": self.m_txtClearance.GetValue(),
-                  "Randomize": self.m_chkRandomize.GetValue()}
+        config = {
+            "HSpacing": self.m_txtHSpacing.GetValue(),
+            "VSpacing": self.m_txtVSpacing.GetValue(),
+            "Clearance": self.m_txtClearance.GetValue(),
+            "Randomize": self.m_chkRandomize.GetValue()}
 
-        with open(self.default_file_path, "w+") as def_file:
-            def_file.write(json.dumps(config))
+
+
+        if self.config_textbox == None:
+            self.config = {"ViaStitching": "0.1"
+                          }
+            title_block = pcbnew.PCB_TEXT(self.board)
+            title_block.SetLayer(self.config_layer)
+            title_block.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_LEFT)
+            title_block.SetVertJustify(pcbnew.GR_TEXT_VJUSTIFY_TOP)
+            title_block.SetVisible(False)
+            self.config_textbox = title_block
+            self.board.Add(title_block)
+        self.config[zone_name] = config
+
+        self.config_textbox.SetText(json.dumps(self.config, indent=2))
 
         # Get overlapping items
         self.GetOverlappingItems()
 
         # Search trough groups
         for group in self.board.Groups():
-            if group.GetName() == __viagroupname__:
+            if group.GetName() == self.viagroupname:
                 self.pcb_group = group
 
         if self.pcb_group is None:
             self.pcb_group = pcbnew.PCB_GROUP(None)
-            self.pcb_group.SetName(__viagroupname__)
+            self.pcb_group.SetName(self.viagroupname)
             self.board.Add(self.pcb_group)
 
         self.FillupArea()
@@ -419,6 +455,20 @@ class ViaStitchingDialog(viastitching_gui):
         """Manage Close button click event."""
 
         self.Destroy()
+
+    def getConfigLayer(self):
+        self.config_layer = 0
+        user_layer = 0
+        for i in range(pcbnew.PCBNEW_LAYER_ID_START, pcbnew.PCBNEW_LAYER_ID_START + pcbnew.PCB_LAYER_ID_COUNT):
+            if __plugin_config_layer_name__ == pcbnew.BOARD_GetStandardLayerName(i):
+                self.config_layer = i
+                break
+            if "User.9" == pcbnew.BOARD_GetStandardLayerName(i):
+                user_layer = i
+        else:
+            self.config_layer = user_layer
+            self.board.SetLayerName(self.config_layer, __plugin_config_layer_name__)
+
 
 
 def InitViaStitchingDialog(board):
