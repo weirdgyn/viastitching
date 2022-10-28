@@ -86,6 +86,7 @@ Hope someone find my work useful or at least *inspiring* to create something els
 Special thanks to everyone that contributed to this project:
 - [Giulio Borsoi](https://github.com/giulio-borsoi)
 - [danwood76](https://github.com/danwood76)
+- [NilujePerchut](https://github.com/NilujePerchut)
 
 Last but not least, I would like to thank everyone who shared their knowledge of Python and KiCAD with me: Thanks!
 #
