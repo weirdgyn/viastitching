@@ -84,6 +84,7 @@ Tool I got inspired by:
 
 Hope someone find my work useful or at least *inspiring* to create something else/better.
 I would like to thank everyone has shared his knoledge of Python and KiCAD with me: Thanks!
+Special thanks to everyone that contributed to this project.
 
 #
 
