@@ -33,16 +33,19 @@ Some features still to code:
 - [x] Match user units (mm/inches).
 - [x] Add clear area function.
 - [ ] Draw a better UI (if anyone is willing to contribute please read the following section).
-- [ ] Collision between new vias and underlying objects: 
-   - [ ] tracks, 
-   - [x] zones, 
+- [x] Collision between new vias and underlying objects: 
+   - [x] tracks, 
+   - [x] zones,
    - [x] pads,
+   - [x] footprint zones,
    - [x] modules,
    - [x] vias.
 - [ ] Different fillup patterns/modes (bounding box, centered spiral).
 - [x] Avoid placing vias near area edges (define clearance).
 - [ ] History management (board commit).
 - [ ] Localization.
+- [x] Support for multiple zones
+- [x] Storage of stitching configuration for each individual zone as JSON string in a user layer.
 - [ ] Any request?
 
 ## Coding notes
