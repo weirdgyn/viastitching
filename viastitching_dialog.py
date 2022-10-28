@@ -28,6 +28,10 @@ __timecode__ = 1972
 __viagroupname_base__ = "VIA_STITCHING_GROUP"
 __plugin_config_layer_name__ = "plugins.config"
 
+GUI_defaults = {"to_units": {0: pcbnew.ToMils, 1: pcbnew.ToMM},
+                    "from_units": {0: pcbnew.FromMils, 1: pcbnew.FromMM},
+                    "unit_labels": {0: u"mils", 1: u"mm"},
+                    "spacing": {0: "40", 1: "1"}}
 
 class ViaStitchingDialog(viastitching_gui):
     """Class that gathers all the Gui controls."""
@@ -64,7 +68,7 @@ class ViaStitchingDialog(viastitching_gui):
                     if "ViaStitching" in new_config.keys():
                         self.config_textbox = d
                         self.config = new_config
-                except JSONDecodeError:
+                except (JSONDecodeError, AttributeError):
                     pass
 
 
@@ -72,34 +76,26 @@ class ViaStitchingDialog(viastitching_gui):
         self.ToUserUnit = None
         self.FromUserUnit = None
         units_mode = pcbnew.GetUserUnits()
-
-        if units_mode == 0:
-            self.ToUserUnit = pcbnew.ToMils
-            self.FromUserUnit = pcbnew.FromMils
-            self.m_lblUnit1.SetLabel(_(u"mils"))
-            self.m_lblUnit2.SetLabel(_(u"mils"))
-            self.m_txtVSpacing.SetValue("40")
-            self.m_txtHSpacing.SetValue("40")
-        elif units_mode == 1:
-            self.ToUserUnit = pcbnew.ToMM
-            self.FromUserUnit = pcbnew.FromMM
-            self.m_lblUnit1.SetLabel(_(u"mm"))
-            self.m_lblUnit2.SetLabel(_(u"mm"))
-            self.m_txtVSpacing.SetValue("1")
-            self.m_txtHSpacing.SetValue("1")
-        elif units_mode == -1:
+        if units_mode == -1:
             wx.MessageBox(_(u"Not a valid frame"))
             self.Destroy()
+            return
 
             # Check for selected area
         if not self.GetAreaConfig():
             wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
-        else:
-            # Populate nets checkbox
-            self.PopulateNets()
+            return
 
-        defaults = self.config.get(self.area.GetZoneName(), None)
+        # Populate nets checkbox
+        self.PopulateNets()
+
+        self.ToUserUnit = GUI_defaults["to_units"][units_mode]
+        self.FromUserUnit = GUI_defaults["from_units"][units_mode]
+        self.m_lblUnit1.SetLabel(_(GUI_defaults["unit_labels"][units_mode]))
+        self.m_lblUnit2.SetLabel(_(GUI_defaults["unit_labels"][units_mode]))
+
+        defaults = self.config.get(self.area.GetZoneName(), {})
         self.viagroupname = __viagroupname_base__ + self.area.GetZoneName()
 
         # Search trough groups
@@ -107,11 +103,10 @@ class ViaStitchingDialog(viastitching_gui):
             if group.GetName() == self.viagroupname:
                 self.pcb_group = group
 
-        if defaults is not None:
-            self.m_txtVSpacing.SetValue(defaults.get("VSpacing", "3"))
-            self.m_txtHSpacing.SetValue(defaults.get("HSpacing", "3"))
-            self.m_txtClearance.SetValue(defaults.get("Clearance", "0"))
-            self.m_chkRandomize.SetValue(defaults.get("Randomize", False))
+        self.m_txtVSpacing.SetValue(defaults.get("VSpacing", GUI_defaults["spacing"][units_mode]))
+        self.m_txtHSpacing.SetValue(defaults.get("HSpacing", GUI_defaults["spacing"][units_mode]))
+        self.m_txtClearance.SetValue(defaults.get("Clearance", "0"))
+        self.m_chkRandomize.SetValue(defaults.get("Randomize", False))
 
         # Get default Vias dimensions
         via_dim_list = self.board.GetViasDimensionsList()
@@ -145,7 +140,7 @@ class ViaStitchingDialog(viastitching_gui):
 
         for zone in self.board.Zones():
             if zone.GetZoneName() != self.area.GetZoneName():
-                if (zone.GetBoundingBox().Intersects(area_bbox)):
+                if zone.GetBoundingBox().Intersects(area_bbox):
                     self.overlappings.append(zone)
 
         for item in tracks:
@@ -285,8 +280,8 @@ class ViaStitchingDialog(viastitching_gui):
                 center = edge.GetPosition()
                 start = edge.GetStart()
                 end = edge.GetEnd()
-                radius = norm(center - end)  # ((center - end).x ** 2 + (center - end).y ** 2)
-                dist = norm(p1 - center)  # sqrt((p1 - center).x ** 2 + (p1 - center).y ** 2)
+                radius = norm(center - end)
+                dist = norm(p1 - center)
                 if radius - (self.clearance + via.GetWidth() / 2) < dist < radius + (
                         self.clearance + via.GetWidth() / 2):
                     # via is in range need to check the angle
@@ -319,7 +314,7 @@ class ViaStitchingDialog(viastitching_gui):
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
             elif type(item) in [pcbnew.ZONE, pcbnew.FP_ZONE]:
-                if item.HitTestFilledArea(self.area.GetLayer(), via.GetPosition(), 0):
+                if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
             elif type(item) is pcbnew.PCB_TRACK:
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
