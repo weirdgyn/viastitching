@@ -12,14 +12,14 @@ Whenever you need to fill a copper area with vias to improve thermal or current 
 
 The workflow is pretty simple: select the area you want to fill, click on ```Tools->External Plugins->ViaStitching``` or click on ![AddNet icon](viastitching.png?raw=true) toolbar icon: a dilaog like the one below should appear:
 
-![AddNet dialog](pictures/viastitching_dialog.PNG?raw=true "ViaStitching dialog")
+![AddNet dialog](pictures/viastitching_dialog.png?raw=true "ViaStitching dialog")
 
 The vias you're going to create needs to be assigned a net usually this's the net of the target area for this reason the plugin pre-select this net for you; of course you're free to select another net if you like.
 The plugin dialog let you also specify the parameters for the via creation (via size and drill size), such values are taken from board configuration, you can change them but beware to use values that will not conflict with DRC rules; you can customize also: vertical and horizontal spacing between vias and edge clearance (insert 0 will disable check).
 When you're satisfied with your settings you have just to press __Ok__ and the fillup will begin (I'm assuming __Fill__ action is checked).
 If everything goes fine you'll get something like this:
 
-![viastitching result](pictures/viastitching_result.PNG?raw=true "ViaStitching result")
+![viastitching result](pictures/viastitching_result.png?raw=true "ViaStitching result")
 
 After stitching is always a good practice to perform a DRC.
 
@@ -33,16 +33,19 @@ Some features still to code:
 - [x] Match user units (mm/inches).
 - [x] Add clear area function.
 - [ ] Draw a better UI (if anyone is willing to contribute please read the following section).
-- [ ] Collision between new vias and underlying objects: 
-   - [ ] tracks, 
-   - [x] zones, 
+- [x] Collision between new vias and underlying objects: 
+   - [x] tracks, 
+   - [x] zones,
    - [x] pads,
+   - [x] footprint zones,
    - [x] modules,
    - [x] vias.
 - [ ] Different fillup patterns/modes (bounding box, centered spiral).
 - [x] Avoid placing vias near area edges (define clearance).
 - [ ] History management (board commit).
 - [ ] Localization.
+- [x] Support for multiple zones
+- [x] Storage of stitching configuration for each individual zone as JSON string in a user layer.
 - [ ] Any request?
 
 ## Coding notes
