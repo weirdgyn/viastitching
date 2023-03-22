@@ -357,7 +357,11 @@ class ViaStitchingDialog(viastitching_gui):
                 else:
                     xp = x
                     yp = y
-                p = pcbnew.wxPoint(xp, yp)
+                if pcbnew.Version() == '7.0.0':
+                    p = pcbnew.VECTOR2I(xp, yp)
+                else:
+                    p = pcbnew.wxPoint(xp, yp)
+
                 if self.area.HitTestFilledArea(layer, p, 0):
                     via = pcbnew.PCB_VIA(self.board)
                     via.SetPosition(p)
@@ -408,15 +412,16 @@ class ViaStitchingDialog(viastitching_gui):
             "Clearance": self.m_txtClearance.GetValue(),
             "Randomize": self.m_chkRandomize.GetValue()}
 
-
-
         if self.config_textbox == None:
             self.config = {"ViaStitching": "0.1"
                           }
             title_block = pcbnew.PCB_TEXT(self.board)
             title_block.SetLayer(self.config_layer)
-            title_block.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_LEFT)
-            title_block.SetVertJustify(pcbnew.GR_TEXT_VJUSTIFY_TOP)
+            
+            if pcbnew.Version() != '7.0.0':
+                title_block.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_LEFT)
+                title_block.SetVertJustify(pcbnew.GR_TEXT_VJUSTIFY_TOP)
+
             title_block.SetVisible(False)
             self.config_textbox = title_block
             self.board.Add(title_block)
