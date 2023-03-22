@@ -5,6 +5,7 @@
 # (c) Michele Santucci 2019
 #
 import random
+from json import JSONDecodeError
 
 import wx
 import pcbnew
@@ -12,17 +13,25 @@ import gettext
 import math
 
 from .viastitching_gui import viastitching_gui
-from math import sqrt
-import numpy as np
+
+numpy_available = False
+try:
+    import numpy as np
+    numpy_available = True
+except Exception:
+    from math import sqrt, pow
 import json
-import pathlib
 
 _ = gettext.gettext
 __version__ = "0.2"
 __timecode__ = 1972
-__viagroupname__ = "VIA_STITCHING_GROUP"
-default_filename = "defaults.json"
+__viagroupname_base__ = "VIA_STITCHING_GROUP"
+__plugin_config_layer_name__ = "plugins.config"
 
+GUI_defaults = {"to_units": {0: pcbnew.ToMils, 1: pcbnew.ToMM},
+                    "from_units": {0: pcbnew.FromMils, 1: pcbnew.FromMM},
+                    "unit_labels": {0: u"mils", 1: u"mm"},
+                    "spacing": {0: "40", 1: "1"}}
 
 class ViaStitchingDialog(viastitching_gui):
     """Class that gathers all the Gui controls."""
@@ -31,6 +40,7 @@ class ViaStitchingDialog(viastitching_gui):
         """Initialize the brand new instance."""
 
         super(ViaStitchingDialog, self).__init__(None)
+        self.viagroupname = None
         self.SetTitle(_(u"ViaStitching v{0}").format(__version__))
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
         self.m_btnCancel.Bind(wx.EVT_BUTTON, self.onCloseWindow)
@@ -41,49 +51,60 @@ class ViaStitchingDialog(viastitching_gui):
         self.pcb_group = None
         self.clearance = 0
         self.board_edges = []
-        self.default_file_path = f"{pathlib.Path(__file__).parent.resolve()}/{default_filename}"
+        self.config_layer = 0
+        self.config_textbox = None
+        self.area = None
+        self.net = None
+        self.config = {}
+
+        self.getConfigLayer()
 
         for d in pcbnew.GetBoard().GetDrawings():
             if d.GetLayerName() == 'Edge.Cuts':
                 self.board_edges.append(d)
+            if d.GetLayerName() == __plugin_config_layer_name__:
+                try:
+                    new_config = json.loads(d.GetText())
+                    if "ViaStitching" in new_config.keys():
+                        self.config_textbox = d
+                        self.config = new_config
+                except (JSONDecodeError, AttributeError):
+                    pass
 
-        # Search trough groups
-        for group in self.board.Groups():
-            if group.GetName() == __viagroupname__:
-                self.pcb_group = group
 
         # Use the same unit set int PCBNEW
         self.ToUserUnit = None
         self.FromUserUnit = None
         units_mode = pcbnew.GetUserUnits()
-
-        if units_mode == 0:
-            self.ToUserUnit = pcbnew.ToMils
-            self.FromUserUnit = pcbnew.FromMils
-            self.m_lblUnit1.SetLabel(_(u"mils"))
-            self.m_lblUnit2.SetLabel(_(u"mils"))
-            self.m_txtVSpacing.SetValue("40")
-            self.m_txtHSpacing.SetValue("40")
-        elif units_mode == 1:
-            self.ToUserUnit = pcbnew.ToMM
-            self.FromUserUnit = pcbnew.FromMM
-            self.m_lblUnit1.SetLabel(_(u"mm"))
-            self.m_lblUnit2.SetLabel(_(u"mm"))
-            self.m_txtVSpacing.SetValue("1")
-            self.m_txtHSpacing.SetValue("1")
-        elif units_mode == -1:
+        if units_mode == -1:
             wx.MessageBox(_(u"Not a valid frame"))
             self.Destroy()
+            return
 
-        try:
-            defaults = {}
-            with open(self.default_file_path, "r") as def_file:
-                defaults = json.load(def_file)
-        except Exception:
-            pass
+            # Check for selected area
+        if not self.GetAreaConfig():
+            wx.MessageBox(_(u"Please select a valid area"))
+            self.Destroy()
+            return
 
-        self.m_txtVSpacing.SetValue(defaults.get("VSpacing", "3"))
-        self.m_txtHSpacing.SetValue(defaults.get("HSpacing", "3"))
+        # Populate nets checkbox
+        self.PopulateNets()
+
+        self.ToUserUnit = GUI_defaults["to_units"][units_mode]
+        self.FromUserUnit = GUI_defaults["from_units"][units_mode]
+        self.m_lblUnit1.SetLabel(_(GUI_defaults["unit_labels"][units_mode]))
+        self.m_lblUnit2.SetLabel(_(GUI_defaults["unit_labels"][units_mode]))
+
+        defaults = self.config.get(self.area.GetZoneName(), {})
+        self.viagroupname = __viagroupname_base__ + self.area.GetZoneName()
+
+        # Search trough groups
+        for group in self.board.Groups():
+            if group.GetName() == self.viagroupname:
+                self.pcb_group = group
+
+        self.m_txtVSpacing.SetValue(defaults.get("VSpacing", GUI_defaults["spacing"][units_mode]))
+        self.m_txtHSpacing.SetValue(defaults.get("HSpacing", GUI_defaults["spacing"][units_mode]))
         self.m_txtClearance.SetValue(defaults.get("Clearance", "0"))
         self.m_chkRandomize.SetValue(defaults.get("Randomize", False))
 
@@ -99,19 +120,7 @@ class ViaStitchingDialog(viastitching_gui):
         self.m_txtViaSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Diameter))
         self.m_txtViaDrillSize.SetValue("%.6f" % self.ToUserUnit(via_dims.m_Drill))
         via_dim_list.push_back(via_dims)
-        self.area = None
-        self.net = None
         self.overlappings = None
-
-        # Check for selected area
-        if not self.GetAreaConfig():
-            wx.MessageBox(_(u"Please select a valid area"))
-            self.Destroy()
-        else:
-            # Get overlapping items
-            self.GetOverlappingItems()
-            # Populate nets checkbox
-            self.PopulateNets()
 
     def GetOverlappingItems(self):
         """Collect overlapping items.
@@ -129,6 +138,11 @@ class ViaStitchingDialog(viastitching_gui):
 
         self.overlappings = []
 
+        for zone in self.board.Zones():
+            if zone.GetZoneName() != self.area.GetZoneName():
+                if zone.GetBoundingBox().Intersects(area_bbox):
+                    self.overlappings.append(zone)
+
         for item in tracks:
             if (type(item) is pcbnew.PCB_VIA) and (item.GetBoundingBox().Intersects(area_bbox)):
                 self.overlappings.append(item)
@@ -139,6 +153,8 @@ class ViaStitchingDialog(viastitching_gui):
             if item.GetBoundingBox().Intersects(area_bbox):
                 for pad in item.Pads():
                     self.overlappings.append(pad)
+                for zone in item.Zones():
+                    self.overlappings.append(zone)
 
         # TODO: change algorithm to 'If one of the candidate area's edges overlaps with target area declare candidate as overlapping'
         for i in range(0, self.board.GetAreaCount()):
@@ -203,7 +219,7 @@ class ViaStitchingDialog(viastitching_gui):
                 # if undo and (item.GetTimeStamp() == __timecode__):
                 if undo and (self.pcb_group is not None):
                     group = item.GetParentGroup()
-                    if (group is not None and group.GetName() == __viagroupname__):
+                    if (group is not None and group.GetName() == self.viagroupname):
                         self.board.Remove(item)
                         viacount += 1
                         # commit.Remove(item)
@@ -239,19 +255,16 @@ class ViaStitchingDialog(viastitching_gui):
         for i in range(corners):
             corner = area.GetCornerPosition(i)
             p2 = corner.getWxPoint()
-            the_distance = np.linalg.norm(p2 - p1)  # sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
+            the_distance = norm(p2 - p1)  # sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
 
             if the_distance < clearance:
                 return False
 
-        point = np.array([float(p1.x), float(p1.y)])  # Calculate minimum distance from edges
         for i in range(corners):
             corner1 = area.GetCornerPosition(i)
             corner2 = area.GetCornerPosition((i + 1) % corners)
             pc1 = corner1.getWxPoint()
             pc2 = corner2.getWxPoint()
-            # start = np.array([float(pc1.x), float(pc1.y), 0.])
-            # end = np.array([float(pc2.x), float(pc2.y), 0.])
             the_distance, _ = pnt2line(p1, pc1, pc2)
 
             if the_distance <= clearance:
@@ -259,8 +272,6 @@ class ViaStitchingDialog(viastitching_gui):
 
         for edge in self.board_edges:
             if edge.ShowShape() == 'Line':
-                # start = np.array([float(edge.GetStart().x), float(edge.GetStart().y), 0.])
-                # end = np.array([float(edge.GetEnd().x), float(edge.GetEnd().y), 0.])
                 the_distance, _ = pnt2line(p1, edge.GetStart(), edge.GetEnd())
                 if the_distance <= clearance + via.GetWidth() / 2:
                     return False
@@ -269,15 +280,15 @@ class ViaStitchingDialog(viastitching_gui):
                 center = edge.GetPosition()
                 start = edge.GetStart()
                 end = edge.GetEnd()
-                radius = np.linalg.norm(center - end)  # ((center - end).x ** 2 + (center - end).y ** 2)
-                dist = np.linalg.norm(p1 - center)  # sqrt((p1 - center).x ** 2 + (p1 - center).y ** 2)
+                radius = norm(center - end)
+                dist = norm(p1 - center)
                 if radius - (self.clearance + via.GetWidth() / 2) < dist < radius + (
                         self.clearance + via.GetWidth() / 2):
                     # via is in range need to check the angle
                     start_angle = math.atan2((start - center).y, (start - center).x)
                     end_angle = math.atan2((end - center).y, (end - center).x)
                     if end_angle < start_angle:
-                        end_angle += 2*math.pi
+                        end_angle += 2 * math.pi
                     point_angle = math.atan2((p1 - center).y, (p1 - center).x)
                     if start_angle <= point_angle <= end_angle:
                         return False
@@ -302,8 +313,8 @@ class ViaStitchingDialog(viastitching_gui):
                 # Overlapping with vias work best if checking is performed by intersection
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
-            elif type(item) is pcbnew.ZONE:
-                if item.HitTestFilledArea(self.area.GetLayer(), via.GetPosition(), 0):
+            elif type(item) in [pcbnew.ZONE, pcbnew.FP_ZONE]:
+                if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
             elif type(item) is pcbnew.PCB_TRACK:
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
@@ -379,23 +390,51 @@ class ViaStitchingDialog(viastitching_gui):
 
     def onProcessAction(self, event):
         """Manage main button (Ok) click event."""
+        zone_name = self.area.GetZoneName()
+        if zone_name == "":
+            for i in range(1000):
+                candidate_name = f"stitch_zone_{i}"
+                if candidate_name not in self.config.keys():
+                    zone_name = candidate_name
+                    break
+            else:
+                wx.LogError("Tried 1000 different names and all were taken. Please give a name to the zone.")
+                self.Destroy()
+            self.area.SetZoneName(zone_name)
 
-        config = {"HSpacing": self.m_txtHSpacing.GetValue(),
-                  "VSpacing": self.m_txtVSpacing.GetValue(),
-                  "Clearance": self.m_txtClearance.GetValue(),
-                  "Randomize": self.m_chkRandomize.GetValue()}
+        config = {
+            "HSpacing": self.m_txtHSpacing.GetValue(),
+            "VSpacing": self.m_txtVSpacing.GetValue(),
+            "Clearance": self.m_txtClearance.GetValue(),
+            "Randomize": self.m_chkRandomize.GetValue()}
 
-        with open(self.default_file_path, "w+") as def_file:
-            def_file.write(json.dumps(config))
+
+
+        if self.config_textbox == None:
+            self.config = {"ViaStitching": "0.1"
+                          }
+            title_block = pcbnew.PCB_TEXT(self.board)
+            title_block.SetLayer(self.config_layer)
+            title_block.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_LEFT)
+            title_block.SetVertJustify(pcbnew.GR_TEXT_VJUSTIFY_TOP)
+            title_block.SetVisible(False)
+            self.config_textbox = title_block
+            self.board.Add(title_block)
+        self.config[zone_name] = config
+
+        self.config_textbox.SetText(json.dumps(self.config, indent=2))
+
+        # Get overlapping items
+        self.GetOverlappingItems()
 
         # Search trough groups
         for group in self.board.Groups():
-            if group.GetName() == __viagroupname__:
+            if group.GetName() == self.viagroupname:
                 self.pcb_group = group
 
         if self.pcb_group is None:
             self.pcb_group = pcbnew.PCB_GROUP(None)
-            self.pcb_group.SetName(__viagroupname__)
+            self.pcb_group.SetName(self.viagroupname)
             self.board.Add(self.pcb_group)
 
         self.FillupArea()
@@ -412,6 +451,20 @@ class ViaStitchingDialog(viastitching_gui):
 
         self.Destroy()
 
+    def getConfigLayer(self):
+        self.config_layer = 0
+        user_layer = 0
+        for i in range(pcbnew.PCBNEW_LAYER_ID_START, pcbnew.PCBNEW_LAYER_ID_START + pcbnew.PCB_LAYER_ID_COUNT):
+            if __plugin_config_layer_name__ == pcbnew.BOARD_GetStandardLayerName(i):
+                self.config_layer = i
+                break
+            if "User.9" == pcbnew.BOARD_GetStandardLayerName(i):
+                user_layer = i
+        else:
+            self.config_layer = user_layer
+            self.board.SetLayerName(self.config_layer, __plugin_config_layer_name__)
+
+
 
 def InitViaStitchingDialog(board):
     """Initalize dialog."""
@@ -419,6 +472,38 @@ def InitViaStitchingDialog(board):
     dlg = ViaStitchingDialog(board)
     dlg.Show(True)
     return dlg
+
+
+class aVector():
+
+    def __init__(self, point: [pcbnew.wxPoint, list]):
+        if isinstance(point, pcbnew.wxPoint):
+            self.x = float(point.x)
+            self.y = float(point.y)
+        elif isinstance(point, list):
+            self.x = point[0]
+            self.y = point[1]
+
+    def __sub__(self, other: pcbnew.wxPoint):
+        return aVector([self.x - float(other.x), self.y - float(other.y)])
+
+    def __mul__(self, other):
+        return aVector([self.x * float(other), self.y * float(other)])
+
+    def __add__(self, other):
+        return aVector([self.x + float(other.x), self.y + float(other.y)])
+
+    def __truediv__(self, other):
+        return aVector([self.x / other, self.y / other])
+
+    @staticmethod
+    def norm(vector):
+        return sqrt(pow(vector.x, 2) + pow(vector.y, 2))
+
+    @staticmethod
+    def dot(vector1, vector2):
+        return vector1.x * vector2.x + vector1.y * vector2.y
+
 
 # Given a line with coordinates 'start' and 'end' and the
 # coordinates of a point 'point' the proc returns the shortest
@@ -439,20 +524,29 @@ def InitViaStitchingDialog(board):
 # Malcolm Kesson 16 Dec 2012
 
 def pnt2line(point: pcbnew.wxPoint, start: pcbnew.wxPoint, end: pcbnew.wxPoint):
-    pnt = np.array([point.x, point.y])
-    strt = np.array([start.x, start.y])
-    nd = np.array([end.x, end.y])
+    pnt = vector([point.x, point.y])
+    strt = vector([start.x, start.y])
+    nd = vector([end.x, end.y])
     line_vec = nd - strt
     pnt_vec = pnt - strt
-    line_len = np.linalg.norm(line_vec)
-    line_unitvec = line_vec/line_len
-    pnt_vec_scaled = pnt_vec/line_len
-    t = np.dot(line_unitvec, pnt_vec_scaled)
+    line_len = norm(line_vec)
+    line_unitvec = line_vec / line_len
+    pnt_vec_scaled = pnt_vec / line_len
+    t = dot(line_unitvec, pnt_vec_scaled)
     if t < 0.0:
         t = 0.0
     elif t > 1.0:
         t = 1.0
     nearest = line_vec * t
-    dist = np.linalg.norm(pnt_vec - nearest)
+    dist = norm(pnt_vec - nearest)
     nearest = nearest + strt
     return dist, nearest
+
+
+norm = aVector.norm
+vector = aVector
+dot = aVector.dot
+if numpy_available:
+    norm = np.linalg.norm
+    vector = np.array
+    dot = np.dot
