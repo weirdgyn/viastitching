@@ -420,9 +420,15 @@ class ViaStitchingDialog(viastitching_gui):
             
             if hasattr(pcbnew, 'GR_TEXT_HJUSTIFY_LEFT'):
                 title_block.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_LEFT)
+            else:
+                if hasattr(pcbnew, 'GR_TEXT_H_ALIGN_LEFT'):
+                    title_block.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_LEFT)
 
             if hasattr(pcbnew, 'GR_TEXT_VJUSTIFY_TOP'):
                 title_block.SetVertJustify(pcbnew.GR_TEXT_VJUSTIFY_TOP)
+            else:
+                if hasattr(pcbnew, 'GR_TEXT_V_ALIGN_TOP'):
+                    title_block.SetVertJustify(pcbnew.GR_TEXT_V_ALIGN_TOP)                   
 
             title_block.SetVisible(False)
             self.config_textbox = title_block
