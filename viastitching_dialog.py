@@ -34,7 +34,7 @@ GUI_defaults = {"to_units": {0: pcbnew.ToMils, 1: pcbnew.ToMM},
                     "spacing": {0: "40", 1: "1"}}
 
 class ViaStitchingDialog(viastitching_gui):
-    """Class that gathers all the Gui controls."""
+    """Class that gathers all the GUI controls."""
 
     def __init__(self, board):
         """Initialize the brand new instance."""
@@ -167,7 +167,7 @@ class ViaStitchingDialog(viastitching_gui):
         """Check selected area (if any) and verify if it is a valid container for vias.
 
         Returns:
-            bool: Returns True if an area/zone is selected and match implant criteria, False otherwise.
+            bool: Returns True if an area/zone is selected and matches the implant criteria, False otherwise.
         """
 
         for i in range(0, self.board.GetAreaCount()):
