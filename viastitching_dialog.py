@@ -418,8 +418,10 @@ class ViaStitchingDialog(viastitching_gui):
             title_block = pcbnew.PCB_TEXT(self.board)
             title_block.SetLayer(self.config_layer)
             
-            if pcbnew.Version() != '7.0.0':
+            if hasattr(pcbnew, 'GR_TEXT_HJUSTIFY_LEFT'):
                 title_block.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_LEFT)
+
+            if hasattr(pcbnew, 'GR_TEXT_VJUSTIFY_TOP'):
                 title_block.SetVertJustify(pcbnew.GR_TEXT_VJUSTIFY_TOP)
 
             title_block.SetVisible(False)
