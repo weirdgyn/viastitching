@@ -357,10 +357,12 @@ class ViaStitchingDialog(viastitching_gui):
                 else:
                     xp = x
                     yp = y
-                if pcbnew.Version() == '7.0.0':
+
+                if hasattr(pcbnew, 'VECTOR2I'):
                     p = pcbnew.VECTOR2I(xp, yp)
                 else:
-                    p = pcbnew.wxPoint(xp, yp)
+                    if(hasattr(pcbnew, 'wxPoint')):
+                        p = pcbnew.wxPoint(xp, yp)
 
                 if self.area.HitTestFilledArea(layer, p, 0):
                     via = pcbnew.PCB_VIA(self.board)
