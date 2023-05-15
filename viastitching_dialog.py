@@ -24,14 +24,15 @@ import json
 
 _ = gettext.gettext
 __version__ = "0.2"
-__timecode__ = 1972
+__plugin_name__ = "ViaStitching"
+#__timecode__ = 1972
 __viagroupname_base__ = "VIA_STITCHING_GROUP"
 __plugin_config_layer_name__ = "plugins.config"
 
 GUI_defaults = {"to_units": {0: pcbnew.ToMils, 1: pcbnew.ToMM},
-                    "from_units": {0: pcbnew.FromMils, 1: pcbnew.FromMM},
-                    "unit_labels": {0: u"mils", 1: u"mm"},
-                    "spacing": {0: "40", 1: "1"}}
+                "from_units": {0: pcbnew.FromMils, 1: pcbnew.FromMM},
+                "unit_labels": {0: u"mils", 1: u"mm"},
+                "spacing": {0: "40", 1: "1"}}
 
 class ViaStitchingDialog(viastitching_gui):
     """Class that gathers all the GUI controls."""
@@ -41,7 +42,7 @@ class ViaStitchingDialog(viastitching_gui):
 
         super(ViaStitchingDialog, self).__init__(None)
         self.viagroupname = None
-        self.SetTitle(_(u"ViaStitching v{0}").format(__version__))
+        self.SetTitle(_(u"{0} v{1}").format(__plugin_name__, __version__))
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
         self.m_btnCancel.Bind(wx.EVT_BUTTON, self.onCloseWindow)
         self.m_btnOk.Bind(wx.EVT_BUTTON, self.onProcessAction)
@@ -65,7 +66,7 @@ class ViaStitchingDialog(viastitching_gui):
             if d.GetLayerName() == __plugin_config_layer_name__:
                 try:
                     new_config = json.loads(d.GetText())
-                    if "ViaStitching" in new_config.keys():
+                    if __plugin_name__ in new_config.keys():
                         self.config_textbox = d
                         self.config = new_config
                 except (JSONDecodeError, AttributeError):
@@ -81,7 +82,7 @@ class ViaStitchingDialog(viastitching_gui):
             self.Destroy()
             return
 
-            # Check for selected area
+        # Check for selected area
         if not self.GetAreaConfig():
             wx.MessageBox(_(u"Please select a valid area"))
             self.Destroy()
@@ -357,10 +358,12 @@ class ViaStitchingDialog(viastitching_gui):
                 else:
                     xp = x
                     yp = y
-                if pcbnew.Version() == '7.0.0':
+
+                if hasattr(pcbnew, 'VECTOR2I'):
                     p = pcbnew.VECTOR2I(xp, yp)
                 else:
-                    p = pcbnew.wxPoint(xp, yp)
+                    if(hasattr(pcbnew, 'wxPoint')):
+                        p = pcbnew.wxPoint(xp, yp)
 
                 if self.area.HitTestFilledArea(layer, p, 0):
                     via = pcbnew.PCB_VIA(self.board)
@@ -413,7 +416,7 @@ class ViaStitchingDialog(viastitching_gui):
             "Randomize": self.m_chkRandomize.GetValue()}
 
         if self.config_textbox == None:
-            self.config = {"ViaStitching": "0.1"
+            self.config = {__plugin_name__: __version__
                           }
             title_block = pcbnew.PCB_TEXT(self.board)
             title_block.SetLayer(self.config_layer)
@@ -464,14 +467,22 @@ class ViaStitchingDialog(viastitching_gui):
 
         self.Destroy()
 
+    def GetStandardLayerName(self, layerid):
+        if hasattr(pcbnew, 'BOARD_GetStandardLayerName'):
+            layer_name = pcbnew.BOARD_GetStandardLayerName(layerid)
+        else:
+            layer_name = self.board.GetStandardLayerName(layerid)
+        
+        return layer_name
+
     def getConfigLayer(self):
         self.config_layer = 0
         user_layer = 0
         for i in range(pcbnew.PCBNEW_LAYER_ID_START, pcbnew.PCBNEW_LAYER_ID_START + pcbnew.PCB_LAYER_ID_COUNT):
-            if __plugin_config_layer_name__ == pcbnew.BOARD_GetStandardLayerName(i):
+            if __plugin_config_layer_name__ == self.GetStandardLayerName(i):
                 self.config_layer = i
                 break
-            if "User.9" == pcbnew.BOARD_GetStandardLayerName(i):
+            if "User.9" == self.GetStandardLayerName(i):
                 user_layer = i
         else:
             self.config_layer = user_layer
