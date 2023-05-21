@@ -8,6 +8,13 @@ Fill a selected copper area with a pattern of vias.
 
 Whenever you need to fill a copper area with vias to improve thermal or current conduction this tool is the answer (yet not the best one probably). The plugin is based on pre-existing areas so you have to define and select one before invoking the plugin.
 
+## Install
+
+As any other KiCAD plugin - ViaStitching must be installed into one of the allowed path, my personal advice is to install it as a user plugin.
+To install it as user plugin on Windows systems (KiCAD 7.0) you should put plugins files into:
+
+C:\Users\<user_folder>\Documents\KiCad\7.0\scripting\plugins\viastitching
+
 ## How it works
 
 The workflow is pretty simple: select the area you want to fill, click on ```Tools->External Plugins->ViaStitching``` or click on ![AddNet icon](viastitching.png?raw=true) toolbar icon: a dilaog like the one below should appear:
