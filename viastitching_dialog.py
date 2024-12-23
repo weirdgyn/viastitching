@@ -255,8 +255,12 @@ class ViaStitchingDialog(viastitching_gui):
         # TODO: remove?
         for i in range(corners):
             corner = area.GetCornerPosition(i)
-            p2 = corner.getWxPoint()
-            the_distance = norm(p2 - p1)  # sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
+            # Handle both VECTOR2I and wxPoint
+            if hasattr(corner, 'getWxPoint'):
+                p2 = corner.getWxPoint()
+            else:
+                p2 = corner  # VECTOR2I can be used directly
+            the_distance = norm(p2 - p1)
 
             if the_distance < clearance:
                 return False
@@ -264,8 +268,13 @@ class ViaStitchingDialog(viastitching_gui):
         for i in range(corners):
             corner1 = area.GetCornerPosition(i)
             corner2 = area.GetCornerPosition((i + 1) % corners)
-            pc1 = corner1.getWxPoint()
-            pc2 = corner2.getWxPoint()
+            # Handle both VECTOR2I and wxPoint
+            if hasattr(corner1, 'getWxPoint'):
+                pc1 = corner1.getWxPoint()
+                pc2 = corner2.getWxPoint()
+            else:
+                pc1 = corner1  # VECTOR2I can be used directly
+                pc2 = corner2
             the_distance, _ = pnt2line(p1, pc1, pc2)
 
             if the_distance <= clearance:
@@ -314,7 +323,7 @@ class ViaStitchingDialog(viastitching_gui):
                 # Overlapping with vias work best if checking is performed by intersection
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
-            elif type(item) in [pcbnew.ZONE, pcbnew.FP_ZONE]:
+            elif type(item).__name__ in ['ZONE', 'FP_ZONE', 'PCB_ZONE', 'ZONE_CONTAINER']:
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
             elif type(item) is pcbnew.PCB_TRACK:
@@ -347,8 +356,8 @@ class ViaStitchingDialog(viastitching_gui):
         x = left
 
         # Cycle trough area bounding box checking and implanting vias
-        layer = self.area.GetLayer()
-
+        layer_set = self.area.GetLayerSet()
+        layers = list(layer_set.Seq())
         while x <= right:
             y = top
             while y <= bottom:
@@ -365,10 +374,10 @@ class ViaStitchingDialog(viastitching_gui):
                     if(hasattr(pcbnew, 'wxPoint')):
                         p = pcbnew.wxPoint(xp, yp)
 
-                if self.area.HitTestFilledArea(layer, p, 0):
+                if all(self.area.HitTestFilledArea(layer, p, 0) for layer in layers):
                     via = pcbnew.PCB_VIA(self.board)
                     via.SetPosition(p)
-                    via.SetLayer(layer)
+                    via.SetLayerSet(layer_set)
                     via.SetNetCode(netcode)
                     # Set up via with clearance added to its size-> bounding box check will be OK in worst case, may be too conservative, but additional checks are possible if needed
                     # TODO: possibly take the clearance from the PCB settings instead of the dialog
@@ -415,7 +424,7 @@ class ViaStitchingDialog(viastitching_gui):
             "Clearance": self.m_txtClearance.GetValue(),
             "Randomize": self.m_chkRandomize.GetValue()}
 
-        if self.config_textbox == None:
+        if self.config_textbox is None:
             self.config = {__plugin_name__: __version__
                           }
             title_block = pcbnew.PCB_TEXT(self.board)
