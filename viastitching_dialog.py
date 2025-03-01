@@ -32,7 +32,8 @@ __plugin_config_layer_name__ = "plugins.config"
 GUI_defaults = {"to_units": {0: pcbnew.ToMils, 1: pcbnew.ToMM},
                 "from_units": {0: pcbnew.FromMils, 1: pcbnew.FromMM},
                 "unit_labels": {0: u"mils", 1: u"mm"},
-                "spacing": {0: "40", 1: "1"}}
+                "spacing": {0: "40", 1: "1"},
+                "offset": {0: "0", 1: "0"}}
 
 class ViaStitchingDialog(viastitching_gui):
     """Class that gathers all the GUI controls."""
@@ -106,6 +107,8 @@ class ViaStitchingDialog(viastitching_gui):
 
         self.m_txtVSpacing.SetValue(defaults.get("VSpacing", GUI_defaults["spacing"][units_mode]))
         self.m_txtHSpacing.SetValue(defaults.get("HSpacing", GUI_defaults["spacing"][units_mode]))
+        self.m_txtVOffset.SetValue(defaults.get("VOffset", GUI_defaults["offset"][units_mode]))
+        self.m_txtHOffset.SetValue(defaults.get("HOffset", GUI_defaults["offset"][units_mode]))
         self.m_txtClearance.SetValue(defaults.get("Clearance", "0"))
         self.m_chkRandomize.SetValue(defaults.get("Randomize", False))
 
@@ -341,6 +344,8 @@ class ViaStitchingDialog(viastitching_gui):
         viasize = self.FromUserUnit(float(self.m_txtViaSize.GetValue()))
         step_x = self.FromUserUnit(float(self.m_txtHSpacing.GetValue()))
         step_y = self.FromUserUnit(float(self.m_txtVSpacing.GetValue()))
+        offset_x = self.FromUserUnit(float(self.m_txtHOffset.GetValue()))
+        offset_y = self.FromUserUnit(float(self.m_txtVOffset.GetValue()))
         clearance = self.FromUserUnit(float(self.m_txtClearance.GetValue()))
         self.randomize = self.m_chkRandomize.GetValue()
         self.clearance = clearance
@@ -353,13 +358,13 @@ class ViaStitchingDialog(viastitching_gui):
         netcode = self.board.GetNetcodeFromNetname(netname)
         # commit = pcbnew.COMMIT()
         viacount = 0
-        x = left
+        x = (left + offset_x) % step_x
 
         # Cycle trough area bounding box checking and implanting vias
         layer_set = self.area.GetLayerSet()
         layers = list(layer_set.Seq())
         while x <= right:
-            y = top
+            y = (top + offset_y) % step_y
             while y <= bottom:
                 if self.randomize:
                     xp = x + random.uniform(-1, 1) * step_x / 5
@@ -421,6 +426,8 @@ class ViaStitchingDialog(viastitching_gui):
         config = {
             "HSpacing": self.m_txtHSpacing.GetValue(),
             "VSpacing": self.m_txtVSpacing.GetValue(),
+            "HOffset": self.m_txtHOffset.GetValue(),
+            "VOffset": self.m_txtVOffset.GetValue(),
             "Clearance": self.m_txtClearance.GetValue(),
             "Randomize": self.m_chkRandomize.GetValue()}
 

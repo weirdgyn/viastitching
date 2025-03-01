@@ -86,6 +86,29 @@ class viastitching_gui ( wx.Dialog ):
 
 		bMainSizer.Add( bHSizer3, 1, wx.EXPAND, 5 )
 
+		bHSizer6 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_lblOffset = wx.StaticText( self, wx.ID_ANY, _(u"Offset (V/H)"), wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_lblOffset.Wrap( -1 )
+
+		bHSizer6.Add( self.m_lblOffset, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.m_txtVOffset = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_txtVOffset.SetMinSize( wx.Size( 120,-1 ) )		
+		bHSizer6.Add( self.m_txtVOffset, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.m_txtHOffset = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_txtHOffset.SetMinSize( wx.Size( 120,-1 ) )		
+		bHSizer6.Add( self.m_txtHOffset, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.m_lblUnit2 = wx.StaticText( self, wx.ID_ANY, _(u"mm"), wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_lblUnit2.Wrap( -1 )
+
+		bHSizer6.Add( self.m_lblUnit2, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+
+		bMainSizer.Add( bHSizer6, 1, wx.EXPAND, 5 )
+
 		bSizer7 = wx.BoxSizer( wx.HORIZONTAL )
 
 		self.m_staticText6 = wx.StaticText( self, wx.ID_ANY, _(u"Clearance"), wx.DefaultPosition, wx.DefaultSize, 0 )
