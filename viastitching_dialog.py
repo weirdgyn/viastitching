@@ -144,8 +144,9 @@ class ViaStitchingDialog(viastitching_gui):
 
         for zone in self.board.Zones():
             if zone.GetZoneName() != self.area.GetZoneName():
-                if zone.GetBoundingBox().Intersects(area_bbox):
-                    self.overlappings.append(zone)
+                if zone.GetNetname() != self.net:
+                    if zone.GetBoundingBox().Intersects(area_bbox):
+                        self.overlappings.append(zone)
 
         for item in tracks:
             if (type(item) is pcbnew.PCB_VIA) and (item.GetBoundingBox().Intersects(area_bbox)):
@@ -327,8 +328,14 @@ class ViaStitchingDialog(viastitching_gui):
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     return True
             elif type(item).__name__ in ['ZONE', 'FP_ZONE', 'PCB_ZONE', 'ZONE_CONTAINER']:
-                if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
-                    return True
+                via_layers = set(via.GetLayerSet().Seq())
+                zone_layers = set(item.GetLayerSet().Seq())
+                common_layers = via_layers & zone_layers
+                if common_layers:
+                    p = via.GetPosition()
+                    accuracy = via.GetWidth() // 2
+                    if any(item.HitTestFilledArea(layer, p, accuracy) for layer in common_layers):
+                        return True
             elif type(item) is pcbnew.PCB_TRACK:
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
                     width = item.GetWidth()
