@@ -320,8 +320,15 @@ class ViaStitchingDialog(viastitching_gui):
 
         for item in self.overlappings:
             if type(item) is pcbnew.PAD:
-                if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
-                    return True
+                # Check with HitTest() rather than GetBoundingBox() to handle round+custom pad shapes
+                via_layers = set(via.GetLayerSet().Seq())
+                pad_layers = set(item.GetLayerSet().Seq())
+                common_layers = via_layers & pad_layers
+                if common_layers:
+                    p = via.GetPosition()
+                    accuracy = via.GetWidth() // 2
+                    if any(item.HitTest(p, accuracy, layer) for layer in common_layers):
+                        return True
             elif type(item) is pcbnew.PCB_VIA:
                 # Overlapping with vias work best if checking is performed by intersection
                 if item.GetBoundingBox().Intersects(via.GetBoundingBox()):
