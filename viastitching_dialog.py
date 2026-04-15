@@ -180,7 +180,9 @@ class ViaStitchingDialog(viastitching_gui):
             if area.IsSelected():
                 if not area.IsOnCopperLayer():
                     return False
-                elif area.GetDoNotAllowCopperPour():
+                elif hasattr(area, 'GetDoNotAllowCopperPour') and area.GetDoNotAllowCopperPour():
+                    return False
+                elif hasattr(area, 'GetDoNotAllowZoneFills') and area.GetDoNotAllowZoneFills():
                     return False
                 self.area = area
                 self.net = area.GetNetname()
