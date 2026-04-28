@@ -29,11 +29,11 @@ __plugin_name__ = "ViaStitching"
 __viagroupname_base__ = "VIA_STITCHING_GROUP"
 __plugin_config_layer_name__ = "plugins.config"
 
-GUI_defaults = {"to_units": {0: pcbnew.ToMils, 1: pcbnew.ToMM},
-                "from_units": {0: pcbnew.FromMils, 1: pcbnew.FromMM},
-                "unit_labels": {0: u"mils", 1: u"mm"},
-                "spacing": {0: "40", 1: "1"},
-                "offset": {0: "0", 1: "0"}}
+GUI_defaults = {"to_units": {5: pcbnew.ToMils, 1: pcbnew.ToMM},
+                "from_units": {5: pcbnew.FromMils, 1: pcbnew.FromMM},
+                "unit_labels": {5: u"mils", 1: u"mm"},
+                "spacing": {5: "40", 1: "1"},
+                "offset": {5: "0", 1: "0"}}
 
 class ViaStitchingDialog(viastitching_gui):
     """Class that gathers all the GUI controls."""
@@ -83,6 +83,12 @@ class ViaStitchingDialog(viastitching_gui):
             self.Destroy()
             return
 
+        # Check user unit is valid (Mils or MM)
+        if units_mode not in GUI_defaults["to_units"]:
+            wx.MessageBox(_(u"Unsupported unit selected"))
+            self.Destroy()
+            return
+
         # Check for selected area
         if not self.GetAreaConfig():
             wx.MessageBox(_(u"Please select a valid area"))
@@ -96,6 +102,7 @@ class ViaStitchingDialog(viastitching_gui):
         self.FromUserUnit = GUI_defaults["from_units"][units_mode]
         self.m_lblUnit1.SetLabel(_(GUI_defaults["unit_labels"][units_mode]))
         self.m_lblUnit2.SetLabel(_(GUI_defaults["unit_labels"][units_mode]))
+        self.m_lblUnit3.SetLabel(_(GUI_defaults["unit_labels"][units_mode]))
 
         defaults = self.config.get(self.area.GetZoneName(), {})
         self.viagroupname = __viagroupname_base__ + self.area.GetZoneName()

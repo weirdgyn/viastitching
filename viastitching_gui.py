@@ -101,10 +101,10 @@ class viastitching_gui ( wx.Dialog ):
 		self.m_txtHOffset.SetMinSize( wx.Size( 120,-1 ) )		
 		bHSizer6.Add( self.m_txtHOffset, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-		self.m_lblUnit2 = wx.StaticText( self, wx.ID_ANY, _(u"mm"), wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_lblUnit2.Wrap( -1 )
+		self.m_lblUnit3 = wx.StaticText( self, wx.ID_ANY, _(u"mm"), wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_lblUnit3.Wrap( -1 )
 
-		bHSizer6.Add( self.m_lblUnit2, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		bHSizer6.Add( self.m_lblUnit3, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
 		bMainSizer.Add( bHSizer6, 1, wx.EXPAND, 5 )
